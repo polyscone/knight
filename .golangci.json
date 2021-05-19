@@ -1,0 +1,59 @@
+{
+  "linters": {
+    "disable-all": true,
+    "enable": [
+      "asciicheck",
+      "deadcode",
+      "durationcheck",
+      "errcheck",
+      "errorlint",
+      "exhaustive",
+      "exportloopref",
+      "gocritic",
+      "godot",
+      "gofmt",
+      "goimports",
+      "golint",
+      "gosec",
+      "gosimple",
+      "govet",
+      "ineffassign",
+      "makezero",
+      "nilerr",
+      "noctx",
+      "nolintlint",
+      "paralleltest",
+      "prealloc",
+      "predeclared",
+      "revive",
+      "staticcheck",
+      "structcheck",
+      "stylecheck",
+      "thelper",
+      "tparallel",
+      "typecheck",
+      "unconvert",
+      "unparam",
+      "unused",
+      "varcheck",
+      "wastedassign",
+      "whitespace"
+    ]
+  },
+  "linters-settings": {
+    "exhaustive": {
+      "default-signifies-exhaustive": true
+    },
+    "nolintlint": {
+      "allow-leading-space": false,
+      "allow-unused": false,
+      "require-explanation": true,
+      "require-specific": true
+    }
+  },
+  "issues": {
+    "exclude": [
+      "Range statement for test .* does not use range value in test Run"
+    ]
+  }
+}
