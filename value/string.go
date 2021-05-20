@@ -8,7 +8,9 @@ import (
 	"github.com/polyscone/knight/build"
 )
 
-const maxInternStringLength = 64
+// MaxInternStringLength defines the maximum length of an interned string.
+// Any strings that go over this length will not be interned.
+const MaxInternStringLength = 32
 
 var strs = struct {
 	sync.Mutex
@@ -80,7 +82,7 @@ func (s *String) String() string {
 
 // NewString will return a runtime String value that wraps the given string.
 func NewString(s string) *String {
-	if len(s) > maxInternStringLength {
+	if len(s) > MaxInternStringLength {
 		return &String{Value: s}
 	}
 
