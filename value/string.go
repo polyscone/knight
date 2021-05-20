@@ -8,6 +8,8 @@ import (
 	"github.com/polyscone/knight/build"
 )
 
+const maxInternStringLength = 64
+
 var strs = struct {
 	sync.Mutex
 	data map[string]*String
@@ -78,7 +80,7 @@ func (s *String) String() string {
 
 // NewString will return a runtime String value that wraps the given string.
 func NewString(s string) *String {
-	if len(s) > 64 {
+	if len(s) > maxInternStringLength {
 		return &String{Value: s}
 	}
 
