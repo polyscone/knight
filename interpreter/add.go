@@ -29,7 +29,7 @@ func (i *Interpreter) Add(lhs, rhs value.Value) (value.Value, error) {
 			return lhs, nil
 		}
 
-		return value.NewInt(lhs.Value + rhs.AsInt().Value), nil
+		return value.NewInt(lhs.Value + rhs.Value), nil
 	case *value.String:
 		if lhs.Value == "" {
 			if rhs, ok := rhs.(*value.String); ok {
