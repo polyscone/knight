@@ -89,7 +89,7 @@ func (s *String) String() string {
 // NewString will return a runtime String value that wraps the given string.
 func NewString(s string) *String {
 	if len(s) > MaxInternStringLength {
-		return &String{Value: s}
+		return NewUniqueString(s)
 	}
 
 	if !build.Reckless {
@@ -109,6 +109,12 @@ func NewString(s string) *String {
 	strs.data[s] = &v
 
 	return &v
+}
+
+// NewUniqueString will return a runtime String value that wraps the given
+// string, but the returned object will always be newly allocated and never interned.
+func NewUniqueString(s string) *String {
+	return &String{Value: s}
 }
 
 // NewSubString will return a runtime String value that wraps the given string
