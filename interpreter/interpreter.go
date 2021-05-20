@@ -29,7 +29,7 @@ type Interpreter struct {
 func (i *Interpreter) Execute(program ast.Program) (value.Value, error) {
 	// Pre-allocate the entire range of internable ints and their string conversions
 	for i := value.MinInternInt; i <= value.MaxInternInt; i++ {
-		_ = value.NewInt(i).AsString()
+		_ = value.NewInt(i)
 	}
 
 	return i.eval(program.Expression)
