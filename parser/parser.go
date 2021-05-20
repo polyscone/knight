@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/polyscone/knight/ast"
-	"github.com/polyscone/knight/lexer"
 	"github.com/polyscone/knight/token"
 	"github.com/polyscone/knight/value"
 )
@@ -27,10 +26,17 @@ var builtinArities = map[byte]int{
 	'W': 2,
 }
 
+// Lexer should provide a stream of tokens from some source code.
+type Lexer interface {
+	Load(r io.ByteScanner)
+	Peek() token.Token
+	Consume() (token.Token, error)
+}
+
 // Parser holds the state for a parser than can transform a stream of Knight
 // tokens into an AST.
 type Parser struct {
-	lexer   *lexer.Lexer
+	lexer   Lexer
 	globals *value.GlobalStore
 }
 
@@ -134,6 +140,6 @@ func (p *Parser) parseExpression() (value.Expression, error) {
 }
 
 // New returns a new initialised Parser.
-func New(lexer *lexer.Lexer) *Parser {
+func New(lexer Lexer) *Parser {
 	return &Parser{lexer: lexer}
 }
