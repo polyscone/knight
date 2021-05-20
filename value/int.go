@@ -2,10 +2,18 @@ package value
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"sync"
 
 	"github.com/polyscone/knight/build"
+)
+
+// These values define the range of ints to intern.
+// Any ints that fall outside this range will not be interned.
+const (
+	MinInternInt = -10
+	MaxInternInt = math.MaxUint8
 )
 
 // These values are created immediately so they can be used by other values, like
@@ -38,7 +46,7 @@ func (i *Int) AsInt() *Int {
 
 // AsString converts the caller to a runtime String representation of its value.
 func (i *Int) AsString() *String {
-	return NewString(strconv.Itoa(i.Value))
+	return NewIntString(i.Value)
 }
 
 // AsExpr returns the value itself as an Expression interface implementation.
@@ -59,6 +67,10 @@ func (i *Int) String() string {
 
 // NewInt will return a runtime Bool value that wraps the given int.
 func NewInt(i int) *Int {
+	if i < MinInternInt || i > MaxInternInt {
+		return &Int{Value: i}
+	}
+
 	if !build.Reckless {
 		ints.Lock()
 		defer ints.Unlock()
