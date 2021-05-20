@@ -27,6 +27,11 @@ type Interpreter struct {
 
 // Execute will walk the given program's AST executing nodes as it goes.
 func (i *Interpreter) Execute(program ast.Program) (value.Value, error) {
+	// Pre-allocate the entire range of internable ints and their string conversions
+	for i := value.MinInternInt; i <= value.MaxInternInt; i++ {
+		_ = value.NewInt(i).AsString()
+	}
+
 	return i.eval(program.Expression)
 }
 
