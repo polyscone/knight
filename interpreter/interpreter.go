@@ -3,6 +3,7 @@ package interpreter
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/polyscone/knight/ast"
@@ -12,10 +13,16 @@ import (
 
 var stdin = bufio.NewReader(os.Stdin)
 
+// Parser describes the minimum interface required for EVAL to function correctly.
+type Parser interface {
+	Parse(globals *value.GlobalStore, r io.ByteScanner) (ast.Program, error)
+}
+
 // Interpreter is an implementation of a tree-walk interpreter than can execute
 // any valid Knight AST.
 type Interpreter struct {
 	globals *value.GlobalStore
+	parser  Parser
 }
 
 // Execute will walk the given program's AST executing nodes as it goes.
@@ -245,6 +252,9 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 
 // New returns an initialised Interpreter that can be used to execute programs
 // that are represented as an AST.
-func New(globals *value.GlobalStore) *Interpreter {
-	return &Interpreter{globals: globals}
+func New(globals *value.GlobalStore, parser Parser) *Interpreter {
+	return &Interpreter{
+		globals: globals,
+		parser:  parser,
+	}
 }

@@ -25,7 +25,7 @@ func TestNoop(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := interpreter.New(nil).Noop(tc.value)
+			result, err := interpreter.New(nil, nil).Noop(tc.value)
 			if err != nil {
 				t.Fatal(err)
 			}

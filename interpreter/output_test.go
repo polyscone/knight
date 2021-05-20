@@ -29,7 +29,7 @@ func TestOutput(t *testing.T) {
 			t.Parallel()
 
 			var buf bytes.Buffer
-			_, err := interpreter.New(nil).Output(&buf, tc.value)
+			_, err := interpreter.New(nil, nil).Output(&buf, tc.value)
 			if err != nil {
 				t.Fatal(err)
 			}

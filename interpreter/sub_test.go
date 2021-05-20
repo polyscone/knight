@@ -26,7 +26,7 @@ func TestSub(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := interpreter.New(nil).Sub(tc.lhs, tc.rhs)
+			result, err := interpreter.New(nil, nil).Sub(tc.lhs, tc.rhs)
 			if err != nil {
 				t.Fatal(err)
 			}

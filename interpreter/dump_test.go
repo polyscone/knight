@@ -29,7 +29,7 @@ func TestDump(t *testing.T) {
 			t.Parallel()
 
 			var buf bytes.Buffer
-			_, err := interpreter.New(nil).Dump(&buf, tc.value)
+			_, err := interpreter.New(nil, nil).Dump(&buf, tc.value)
 			if err != nil {
 				t.Fatal(err)
 			}

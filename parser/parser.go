@@ -34,18 +34,11 @@ type Parser struct {
 	globals *value.GlobalStore
 }
 
-// New returns a new initialised Parser.
-func New(lexer *lexer.Lexer, globals *value.GlobalStore) *Parser {
-	return &Parser{
-		lexer:   lexer,
-		globals: globals,
-	}
-}
-
 // Parse will load the source code int the given byte scanner into its lexer and
 // build an AST from the resulting token stream.
-func (p *Parser) Parse(r io.ByteScanner) (ast.Program, error) {
+func (p *Parser) Parse(globals *value.GlobalStore, r io.ByteScanner) (ast.Program, error) {
 	p.lexer.Load(r)
+	p.globals = globals
 
 	program := ast.Program{Globals: p.globals}
 
@@ -138,4 +131,9 @@ func (p *Parser) parseExpression() (value.Expression, error) {
 	default:
 		return nil, fmt.Errorf("unexpected token: %s", tok)
 	}
+}
+
+// New returns a new initialised Parser.
+func New(lexer *lexer.Lexer) *Parser {
+	return &Parser{lexer: lexer}
 }

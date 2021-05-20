@@ -121,9 +121,9 @@ func main() {
 	}
 
 	l := lexer.New()
+	p := parser.New(l)
 	g := value.NewGlobalStore()
-	p := parser.New(l, g)
-	program, err := p.Parse(bytes.NewReader(b))
+	program, err := p.Parse(g, bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err)
 
@@ -132,7 +132,7 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	if _, err := interpreter.New(g).Execute(program); err != nil {
+	if _, err := interpreter.New(g, p).Execute(program); err != nil {
 		fmt.Println(err)
 
 		os.Exit(1)

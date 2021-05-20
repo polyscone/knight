@@ -8,8 +8,6 @@ import (
 
 	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/build"
-	"github.com/polyscone/knight/lexer"
-	"github.com/polyscone/knight/parser"
 	"github.com/polyscone/knight/value"
 )
 
@@ -34,11 +32,7 @@ func (i *Interpreter) Eval(val value.Value) (value.Value, error) {
 		return i.eval(program.Expression)
 	}
 
-	l := lexer.New()
-	p := parser.New(l, i.globals)
-	r := strings.NewReader(s.Value)
-
-	program, err := p.Parse(r)
+	program, err := i.parser.Parse(i.globals, strings.NewReader(s.Value))
 	if err != nil {
 		fmt.Println(err)
 

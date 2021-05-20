@@ -31,7 +31,7 @@ func TestGet(t *testing.T) {
 			str := value.NewString(tc.str)
 			start := value.NewInt(tc.start)
 			count := value.NewInt(tc.count)
-			result, err := interpreter.New(nil).Get(str, start, count)
+			result, err := interpreter.New(nil, nil).Get(str, start, count)
 			if err != nil {
 				t.Fatal(err)
 			}

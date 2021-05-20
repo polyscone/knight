@@ -26,7 +26,7 @@ func TestIf(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := interpreter.New(nil).If(tc.condition, tc.consequence, tc.alternative)
+			result, err := interpreter.New(nil, nil).If(tc.condition, tc.consequence, tc.alternative)
 			if err != nil {
 				t.Fatal(err)
 			}

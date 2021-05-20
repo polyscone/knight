@@ -27,14 +27,14 @@ func TestWhile(t *testing.T) {
 			t.Parallel()
 
 			l := lexer.New()
+			p := parser.New(l)
 			g := value.NewGlobalStore()
-			p := parser.New(l, g)
-			program, err := p.Parse(strings.NewReader(tc.source))
+			program, err := p.Parse(g, strings.NewReader(tc.source))
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			result, err := interpreter.New(g).Execute(program)
+			result, err := interpreter.New(g, nil).Execute(program)
 			if err != nil {
 				t.Fatal(err)
 			}

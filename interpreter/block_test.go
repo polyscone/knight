@@ -25,7 +25,7 @@ func TestBlock(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			block, err := interpreter.New(nil).Block(tc.expr)
+			block, err := interpreter.New(nil, nil).Block(tc.expr)
 			if err != nil {
 				t.Fatal(err)
 			}

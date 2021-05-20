@@ -26,7 +26,7 @@ func TestPrompt(t *testing.T) {
 			var buf bytes.Buffer
 			buf.WriteString(tc.input)
 
-			result, err := interpreter.New(nil).Prompt(&buf)
+			result, err := interpreter.New(nil, nil).Prompt(&buf)
 			if err != nil {
 				t.Fatal(err)
 			}

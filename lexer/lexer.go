@@ -31,15 +31,6 @@ type Lexer struct {
 	err     error
 }
 
-// New returns a new initialised Lexer.
-func New() *Lexer {
-	l := Lexer{}
-
-	l.Load(nil)
-
-	return &l
-}
-
 // Load resets the state of the lexer and prepares it to tokenise the source
 // code in the given byte scanner.
 func (l *Lexer) Load(r io.ByteScanner) {
@@ -283,6 +274,15 @@ func (l *Lexer) readWhile(f predicate) (string, error) {
 
 func (l *Lexer) readUntil(r byte) (string, error) {
 	return l.readWhile(func(current byte) bool { return current != r })
+}
+
+// New returns a new initialised Lexer.
+func New() *Lexer {
+	l := Lexer{}
+
+	l.Load(nil)
+
+	return &l
 }
 
 func isNewline(r byte) bool {

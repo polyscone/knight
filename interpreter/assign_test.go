@@ -29,7 +29,7 @@ func TestAssign(t *testing.T) {
 			g := value.NewGlobalStore()
 			global := g.New(tc.global)
 
-			_, err := interpreter.New(g).Assign(global, tc.rhs)
+			_, err := interpreter.New(g, nil).Assign(global, tc.rhs)
 			if err != nil {
 				t.Fatal(err)
 			}

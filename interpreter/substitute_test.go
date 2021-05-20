@@ -32,7 +32,7 @@ func TestSubstitute(t *testing.T) {
 			start := value.NewInt(tc.start)
 			count := value.NewInt(tc.count)
 			replace := value.NewString(tc.replace)
-			result, err := interpreter.New(nil).Substitute(str, start, count, replace)
+			result, err := interpreter.New(nil, nil).Substitute(str, start, count, replace)
 			if err != nil {
 				t.Fatal(err)
 			}

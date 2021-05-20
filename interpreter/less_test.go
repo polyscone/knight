@@ -29,7 +29,7 @@ func TestLess(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := interpreter.New(nil).Less(tc.lhs, tc.rhs)
+			result, err := interpreter.New(nil, nil).Less(tc.lhs, tc.rhs)
 			if err != nil {
 				t.Fatal(err)
 			}

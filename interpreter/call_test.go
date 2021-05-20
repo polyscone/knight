@@ -26,7 +26,7 @@ func TestCall(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			i := interpreter.New(nil)
+			i := interpreter.New(nil, nil)
 			block, err := i.Block(tc.expr)
 			if err != nil {
 				t.Fatal(err)
