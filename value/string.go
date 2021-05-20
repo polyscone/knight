@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"sync"
 
 	"github.com/polyscone/knight/build"
@@ -31,6 +32,11 @@ var substrsSlow = struct {
 	sync.Mutex
 	data map[int]map[int]*String
 }{data: make(map[int]map[int]*String)}
+
+var intStrs = struct {
+	sync.Mutex
+	data map[int]*String
+}{data: make(map[int]*String)}
 
 var (
 	nullString  = NewString("null")
@@ -175,6 +181,25 @@ func NewConcatString(lhs, rhs *String) *String {
 	v := NewString(lhs.Value + rhs.Value)
 
 	concats.data[key] = v
+
+	return v
+}
+
+// NewIntString will return a runtime String value that is the string
+// representation of the given integer.
+func NewIntString(i int) *String {
+	if !build.Reckless {
+		intStrs.Lock()
+		defer intStrs.Unlock()
+	}
+
+	if v, ok := intStrs.data[i]; ok {
+		return v
+	}
+
+	v := NewString(strconv.Itoa(i))
+
+	intStrs.data[i] = v
 
 	return v
 }
