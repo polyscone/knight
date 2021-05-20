@@ -23,7 +23,6 @@ var ints = struct {
 // Int represents a runtime integer value.
 type Int struct {
 	Value int
-	str   *String
 }
 
 // AsBool converts the caller to a false Bool runtime value if the caller's
@@ -39,7 +38,7 @@ func (i *Int) AsInt() *Int {
 
 // AsString converts the caller to a runtime String representation of its value.
 func (i *Int) AsString() *String {
-	return i.str
+	return NewString(strconv.Itoa(i.Value))
 }
 
 // AsExpr returns the value itself as an Expression interface implementation.
@@ -69,16 +68,7 @@ func NewInt(i int) *Int {
 		return v
 	}
 
-	// We create a new string here at initialisation to avoid creating
-	// too much garbage at runtime through the strconv.Itoa function
-	//
-	// This means a little more memory usage up front where it might not
-	// be required, but in return we take some pressure off the GC in
-	// workloads where ints are converted to strings a lot
-	v := Int{
-		Value: i,
-		str:   NewString(strconv.Itoa(i)),
-	}
+	v := Int{Value: i}
 
 	ints.data[i] = &v
 
