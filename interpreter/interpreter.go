@@ -13,7 +13,7 @@ import (
 
 var stdin = bufio.NewReader(os.Stdin)
 
-// Parser describes the minimum interface required for EVAL to function correctly.
+// Parser should build a valid AST from some source code.
 type Parser interface {
 	Parse(globals *value.GlobalStore, r io.ByteScanner) (ast.Program, error)
 }
