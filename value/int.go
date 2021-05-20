@@ -65,10 +65,10 @@ func (i *Int) String() string {
 	return strconv.Itoa(i.Value)
 }
 
-// NewInt will return a runtime Bool value that wraps the given int.
+// NewInt will return a runtime Int value that wraps the given int.
 func NewInt(i int) *Int {
 	if i < MinInternInt || i > MaxInternInt {
-		return &Int{Value: i}
+		return NewUniqueInt(i)
 	}
 
 	if !build.Reckless {
@@ -85,4 +85,10 @@ func NewInt(i int) *Int {
 	ints.data[i] = &v
 
 	return &v
+}
+
+// NewUniqueInt will return a runtime Int value that wraps the given int, but the
+// returned object will always be newly allocated and never interned.
+func NewUniqueInt(i int) *Int {
+	return &Int{Value: i}
 }
