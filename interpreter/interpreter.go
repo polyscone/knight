@@ -83,29 +83,35 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 
 			return i.Eval(val)
 		case 'G':
-			str, err := i.eval(v.Args[0])
+			_ = v.Args[2]
+			arg0, arg1, arg2 := v.Args[0], v.Args[1], v.Args[2]
+
+			str, err := i.eval(arg0)
 			if err != nil {
 				return nil, err
 			}
 
-			start, err := i.eval(v.Args[1])
+			start, err := i.eval(arg1)
 			if err != nil {
 				return nil, err
 			}
 
-			count, err := i.eval(v.Args[2])
+			count, err := i.eval(arg2)
 			if err != nil {
 				return nil, err
 			}
 
 			return i.Get(str, start, count)
 		case 'I':
-			condition, err := i.eval(v.Args[0])
+			_ = v.Args[2]
+			arg0, arg1, arg2 := v.Args[0], v.Args[1], v.Args[2]
+
+			condition, err := i.eval(arg0)
 			if err != nil {
 				return nil, err
 			}
 
-			return i.If(condition, v.Args[1], v.Args[2])
+			return i.If(condition, arg1, arg2)
 		case 'L':
 			val, err := i.eval(v.Args[0])
 			if err != nil {
@@ -132,29 +138,35 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 		case 'R':
 			return i.Random()
 		case 'S':
-			str, err := i.eval(v.Args[0])
+			_ = v.Args[3]
+			arg0, arg1, arg2, arg3 := v.Args[0], v.Args[1], v.Args[2], v.Args[3]
+
+			str, err := i.eval(arg0)
 			if err != nil {
 				return nil, err
 			}
 
-			start, err := i.eval(v.Args[1])
+			start, err := i.eval(arg1)
 			if err != nil {
 				return nil, err
 			}
 
-			count, err := i.eval(v.Args[2])
+			count, err := i.eval(arg2)
 			if err != nil {
 				return nil, err
 			}
 
-			replacement, err := i.eval(v.Args[3])
+			replacement, err := i.eval(arg3)
 			if err != nil {
 				return nil, err
 			}
 
 			return i.Substitute(str, start, count, replacement)
 		case 'W':
-			return i.While(v.Args[0], v.Args[1])
+			_ = v.Args[1]
+			arg0, arg1 := v.Args[0], v.Args[1]
+
+			return i.While(arg0, arg1)
 		}
 
 		if v.Name == "XD" {
