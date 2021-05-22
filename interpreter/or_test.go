@@ -3,6 +3,7 @@ package interpreter_test
 import (
 	"testing"
 
+	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/interpreter"
 	"github.com/polyscone/knight/value"
 )
@@ -13,7 +14,7 @@ func TestOr(t *testing.T) {
 	tt := []struct {
 		name string
 		lhs  value.Value
-		rhs  value.Expression
+		rhs  ast.Node
 		want value.Value
 	}{
 		{"lhs true, rhs int", value.NewBool(true), value.NewInt(1), value.NewBool(true)},

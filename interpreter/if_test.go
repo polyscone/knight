@@ -3,6 +3,7 @@ package interpreter_test
 import (
 	"testing"
 
+	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/interpreter"
 	"github.com/polyscone/knight/value"
 )
@@ -13,8 +14,8 @@ func TestIf(t *testing.T) {
 	tt := []struct {
 		name        string
 		condition   value.Value
-		consequence value.Expression
-		alternative value.Expression
+		consequence ast.Node
+		alternative ast.Node
 		want        value.Value
 	}{
 		{"condition truthy eval consequence", value.NewBool(true), value.NewInt(1), value.NewInt(2), value.NewInt(1)},

@@ -11,6 +11,8 @@ var (
 
 // Bool represents a runtime boolean value.
 type Bool struct {
+	Expr
+
 	Value bool
 }
 

@@ -1,10 +1,13 @@
 package interpreter
 
-import "github.com/polyscone/knight/value"
+import (
+	"github.com/polyscone/knight/ast"
+	"github.com/polyscone/knight/value"
+)
 
 // While evaluates the given body expression for as long as the evaluation of
 // the condition expression results in a truthy value.
-func (i *Interpreter) While(condition, body value.Expression) (value.Value, error) {
+func (i *Interpreter) While(condition, body ast.Node) (value.Value, error) {
 	for {
 		result, err := i.eval(condition)
 		if err != nil {

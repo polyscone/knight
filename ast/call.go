@@ -9,9 +9,11 @@ import (
 
 // Call represents an AST node that describes a function call.
 type Call struct {
+	value.Expr
+
 	Name   string
 	Letter byte
-	Args   []value.Expression
+	Args   []Node
 }
 
 // Dump prints a string form of Call for testing.
@@ -51,7 +53,7 @@ func (c Call) String() string {
 // NewCall returns a Call AST node that represents a call with the given
 // arguments to a function.
 // Args are provided as a slice, but there is an upper-limit of four args.
-func NewCall(name string, args []value.Expression) *Call {
+func NewCall(name string, args []Node) Node {
 	if len(args) > 4 {
 		panic("too many args")
 	}

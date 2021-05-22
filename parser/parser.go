@@ -48,40 +48,40 @@ func (p *Parser) Parse(globals *value.GlobalStore, r io.ByteScanner) (ast.Progra
 
 	program := ast.Program{Globals: p.globals}
 
-	expr, err := p.parseExpression()
+	expr, err := p.parseExpr()
 	if err != nil {
 		return program, err
 	}
 
-	program.Expression = expr
+	program.Root = expr
 
 	return program, nil
 }
 
-func (p *Parser) parseExpression() (value.Expression, error) {
+func (p *Parser) parseExpr() (ast.Node, error) {
 	tok, err := p.lexer.Consume()
 	if err != nil {
-		return nil, err
+		return ast.Invalid, err
 	}
 
 	switch tok.Kind {
 	case token.Integer:
 		i, err := strconv.Atoi(tok.Lexeme)
 		if err != nil {
-			return nil, err
+			return ast.Invalid, err
 		}
 
-		return value.NewInt(i), nil
+		return ast.NewInt(i), nil
 	case token.String:
-		return value.NewString(tok.Lexeme), nil
+		return ast.NewString(tok.Lexeme), nil
 	case token.True, token.False:
-		return value.NewBool(tok.Kind == token.True), nil
+		return ast.NewBool(tok.Kind == token.True), nil
 	case token.Null:
-		return value.NewNull(), nil
+		return ast.NewNull(), nil
 	case token.Not, token.Noop, token.System:
-		value, err := p.parseExpression()
+		value, err := p.parseExpr()
 		if err != nil {
-			return nil, err
+			return ast.Invalid, err
 		}
 
 		return ast.NewUnary(tok.Kind, value), nil
@@ -99,19 +99,19 @@ func (p *Parser) parseExpression() (value.Expression, error) {
 		token.Exp,
 		token.Chain:
 
-		lhs, err := p.parseExpression()
+		lhs, err := p.parseExpr()
 		if err != nil {
-			return nil, err
+			return ast.Invalid, err
 		}
 
-		rhs, err := p.parseExpression()
+		rhs, err := p.parseExpr()
 		if err != nil {
-			return nil, err
+			return ast.Invalid, err
 		}
 
 		return ast.NewBinary(tok.Kind, lhs, rhs), nil
 	case token.Variable:
-		return p.globals.New(tok.Lexeme), nil
+		return ast.NewGlobal(p.globals.New(tok.Lexeme)), nil
 	case token.Call:
 		letter := tok.Lexeme[0]
 		arity, ok := builtinArities[letter]
@@ -119,15 +119,15 @@ func (p *Parser) parseExpression() (value.Expression, error) {
 			if tok.Lexeme == "XD" {
 				arity = 1
 			} else {
-				return nil, fmt.Errorf("unexpected function %q", tok.Lexeme)
+				return ast.Invalid, fmt.Errorf("unexpected function %q", tok.Lexeme)
 			}
 		}
 
-		args := make([]value.Expression, arity)
+		args := make([]ast.Node, arity)
 		for i := 0; i < arity; i++ {
-			arg, err := p.parseExpression()
+			arg, err := p.parseExpr()
 			if err != nil {
-				return nil, err
+				return ast.Invalid, err
 			}
 
 			args[i] = arg
@@ -135,7 +135,7 @@ func (p *Parser) parseExpression() (value.Expression, error) {
 
 		return ast.NewCall(tok.Lexeme, args), nil
 	default:
-		return nil, fmt.Errorf("unexpected token: %s", tok)
+		return ast.Invalid, fmt.Errorf("unexpected token: %s", tok)
 	}
 }
 

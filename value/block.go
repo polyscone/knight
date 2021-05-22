@@ -1,11 +1,11 @@
 package value
 
-import "fmt"
-
 // Block is the result of the evaluation of the BLOCK function, and wraps an
 // expression that is to be used as the argument to CALL.
 type Block struct {
-	Expr Expression
+	Expr
+
+	Value Expression
 }
 
 // AsBool is only implemented here so that Block can be used as a value.
@@ -32,24 +32,24 @@ func (b *Block) AsString() *String {
 // AsExpr returns the wrapped Expression, which should be used as an argument
 // to CALL.
 func (b *Block) AsExpr() Expression {
-	return b.Expr
+	return b.Value
 }
 
 // Dump prints a string form of the Block for testing.
 // A block doesn't actually need to dump anything according to the Knight spec
 // but this implementation prints a representation of it anyway.
 func (b *Block) Dump() string {
-	return fmt.Sprintf("Block(%v)", b.Expr.Dump())
+	return "Block(?)"
 }
 
 // String prints a string form of the Block as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (b *Block) String() string {
-	return fmt.Sprintf("(block %v)", b.Expr.String())
+	return "(block ?)"
 }
 
 // NewBlock will return a Block that wraps the given expression, ready for use
 // as an argument to CALL.
-func NewBlock(expr Expression) *Block {
-	return &Block{Expr: expr}
+func NewBlock(v Expression) *Block {
+	return &Block{Value: v}
 }

@@ -46,6 +46,8 @@ var (
 
 // String represents a runtime string value.
 type String struct {
+	Expr
+
 	Value string
 	tag   int
 }

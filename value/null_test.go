@@ -3,6 +3,7 @@ package value_test
 import (
 	"testing"
 
+	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/value"
 )
 
@@ -44,7 +45,7 @@ func TestNullDump(t *testing.T) {
 
 	tt := []struct {
 		name string
-		expr value.Expression
+		expr ast.Node
 		want string
 	}{
 		{"null", value.NewNull(), "Null()"},

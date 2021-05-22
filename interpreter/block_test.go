@@ -14,7 +14,7 @@ func TestBlock(t *testing.T) {
 
 	tt := []struct {
 		name string
-		expr value.Expression
+		expr ast.Node
 	}{
 		{"wrap int", value.NewInt(1)},
 		{"wrap addition", ast.NewBinary(token.Add, value.NewInt(1), value.NewInt(2))},

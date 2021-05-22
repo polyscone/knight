@@ -3,6 +3,7 @@ package interpreter_test
 import (
 	"testing"
 
+	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/interpreter"
 	"github.com/polyscone/knight/value"
 )
@@ -12,8 +13,8 @@ func TestChain(t *testing.T) {
 
 	tt := []struct {
 		name string
-		lhs  value.Expression
-		rhs  value.Expression
+		lhs  ast.Node
+		rhs  ast.Node
 	}{
 		{"lhs int, rhs int", value.NewInt(1), value.NewInt(2)},
 		{"lhs string, rhs string", value.NewString("foo"), value.NewString("bar")},

@@ -30,6 +30,8 @@ var ints = struct {
 
 // Int represents a runtime integer value.
 type Int struct {
+	Expr
+
 	Value int
 }
 

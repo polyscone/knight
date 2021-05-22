@@ -27,13 +27,11 @@ type Interpreter struct {
 
 // Execute will walk the given program's AST executing nodes as it goes.
 func (i *Interpreter) Execute(program ast.Program) (value.Value, error) {
-	return i.eval(program.Expression)
+	return i.eval(program.Root)
 }
 
-func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
-	switch v := expr.(type) {
-	case *value.Block:
-		return v, nil
+func (i *Interpreter) eval(node ast.Node) (value.Value, error) {
+	switch v := node.(type) {
 	case *value.Bool:
 		return v, nil
 	case *value.Int:
@@ -44,11 +42,11 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 		return v, nil
 	case *value.Global:
 		if v.Value == nil {
-			return nil, fmt.Errorf("attempted to access undefined variable %v", v)
+			return nil, fmt.Errorf("attempted to access undefined variable %v", node)
 		}
 
-		if _, ok := v.Value.(*value.Block); ok {
-			return i.eval(v.Value)
+		if b, ok := v.Value.(*value.Block); ok {
+			return i.eval(b.Value.(ast.Node))
 		}
 
 		return v.Value, nil
@@ -172,7 +170,7 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 
 		return nil, fmt.Errorf("undefined function: %v", v.Name)
 	case *ast.Unary:
-		val, err := i.eval(v.Value)
+		val, err := i.eval(v.Node)
 		if err != nil {
 			return nil, err
 		}
@@ -231,17 +229,17 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 		case token.Chain:
 			return rhs, nil
 		case token.Assign:
-			lhs, ok := v.LHS.(*value.Global)
+			global, ok := v.LHS.(*value.Global)
 			if !ok {
 				return nil, fmt.Errorf("cannot assign to %s", v.LHS)
 			}
 
-			return i.Assign(lhs, rhs)
+			return i.Assign(global, rhs)
 		default:
 			return nil, fmt.Errorf("unknown binary operator: %s", v)
 		}
 	default:
-		return nil, fmt.Errorf("unknown expression: %s", expr)
+		return nil, fmt.Errorf("unknown node: %s", node)
 	}
 }
 

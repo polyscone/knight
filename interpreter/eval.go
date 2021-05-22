@@ -1,8 +1,6 @@
 package interpreter
 
 import (
-	"fmt"
-	"os"
 	"strings"
 	"sync"
 
@@ -29,14 +27,12 @@ func (i *Interpreter) Eval(val value.Value) (value.Value, error) {
 			programs.Unlock()
 		}
 
-		return i.eval(program.Expression)
+		return i.eval(program.Root)
 	}
 
 	program, err := i.parser.Parse(i.globals, strings.NewReader(s.Value))
 	if err != nil {
-		fmt.Println(err)
-
-		os.Exit(1)
+		return nil, err
 	}
 
 	programs.data[s] = program
@@ -45,5 +41,5 @@ func (i *Interpreter) Eval(val value.Value) (value.Value, error) {
 		programs.Unlock()
 	}
 
-	return i.eval(program.Expression)
+	return i.eval(program.Root)
 }

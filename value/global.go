@@ -9,6 +9,8 @@ import (
 
 // Global represents a global name/value pair.
 type Global struct {
+	Expr
+
 	Name  string
 	Value Value
 }

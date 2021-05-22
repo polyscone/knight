@@ -14,7 +14,7 @@ func TestCall(t *testing.T) {
 
 	tt := []struct {
 		name string
-		expr value.Expression
+		expr ast.Node
 		want value.Value
 	}{
 		{"call wrapped int", value.NewInt(1), value.NewInt(1)},

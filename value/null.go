@@ -3,7 +3,9 @@ package value
 var null = &Null{}
 
 // Int represents a runtime null value.
-type Null struct{}
+type Null struct {
+	Expr
+}
 
 // AsBool converts the caller to a runtime Bool representation of Null.
 func (n *Null) AsBool() *Bool {
