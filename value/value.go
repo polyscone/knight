@@ -22,15 +22,8 @@ func Equal(lhs, rhs Value) bool {
 		return ok && lhs.Value == rhs.Value
 	case *String:
 		rhs, ok := rhs.(*String)
-		if !ok {
-			return false
-		}
 
-		if lhs.tag == 0 || rhs.tag == 0 {
-			return lhs.Value == rhs.Value
-		}
-
-		return lhs.tag == rhs.tag
+		return ok && (lhs == rhs || lhs.Value == rhs.Value)
 	}
 
 	return lhs == rhs
