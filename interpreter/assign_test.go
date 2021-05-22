@@ -13,7 +13,7 @@ func TestAssign(t *testing.T) {
 	tt := []struct {
 		name   string
 		global string
-		rhs    value.Expression
+		rhs    value.Value
 		want   value.Value
 	}{
 		{"assign string to x", "x", value.NewString("foo"), value.NewString("foo")},

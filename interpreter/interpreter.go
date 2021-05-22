@@ -27,11 +27,6 @@ type Interpreter struct {
 
 // Execute will walk the given program's AST executing nodes as it goes.
 func (i *Interpreter) Execute(program ast.Program) (value.Value, error) {
-	// Pre-allocate the entire range of internable ints and their string conversions
-	for i := value.MinInternInt; i <= value.MaxInternInt; i++ {
-		_ = value.NewInt(i)
-	}
-
 	return i.eval(program.Expression)
 }
 
@@ -193,26 +188,20 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 			return nil, fmt.Errorf("unknown unary operator: %s", v)
 		}
 	case *ast.Binary:
-		var lhs value.Value
-		var rhs value.Value
+		var lhs, rhs value.Value
+		var err error
 
-		// Assignment shouldn't evaluate its LHS because in that case we want
-		// to set the value, not get it
-		//
-		// Chain conditionally evaluates its RHS, so we do it in the case
-		// rather than here to simplify the error checks
-		if v.Op != token.Assign && v.Op != token.Chain {
-			var err error
+		if v.Op != token.Assign {
 			if lhs, err = i.eval(v.LHS); err != nil {
 				return nil, err
 			}
+		}
 
-			// The logical and/or operations can short-circuit, so we need to
-			// evaluate the RHS conditionally
-			if v.Op != token.And && v.Op != token.Or {
-				if rhs, err = i.eval(v.RHS); err != nil {
-					return nil, err
-				}
+		// The logical and/or operations can short-circuit, so we need to
+		// evaluate the RHS conditionally
+		if v.Op != token.And && v.Op != token.Or {
+			if rhs, err = i.eval(v.RHS); err != nil {
+				return nil, err
 			}
 		}
 
@@ -240,25 +229,14 @@ func (i *Interpreter) eval(expr value.Expression) (value.Value, error) {
 		case token.Equal:
 			return i.Equal(lhs, rhs)
 		case token.Chain:
-			if _, err := i.eval(v.LHS); err != nil {
-				return nil, err
-			}
-
-			return i.eval(v.RHS)
+			return rhs, nil
 		case token.Assign:
-			global, ok := v.LHS.(*value.Global)
+			lhs, ok := v.LHS.(*value.Global)
 			if !ok {
 				return nil, fmt.Errorf("cannot assign to %s", v.LHS)
 			}
 
-			rhs, err := i.eval(v.RHS)
-			if err != nil {
-				return nil, err
-			}
-
-			global.Value = rhs
-
-			return rhs, nil
+			return i.Assign(lhs, rhs)
 		default:
 			return nil, fmt.Errorf("unknown binary operator: %s", v)
 		}

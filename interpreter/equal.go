@@ -1,8 +1,6 @@
 package interpreter
 
-import (
-	"github.com/polyscone/knight/value"
-)
+import "github.com/polyscone/knight/value"
 
 // Equal returns the boolean result of an equality comparison between the
 // LHS and RHS values.

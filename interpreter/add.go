@@ -16,35 +16,9 @@ import (
 func (i *Interpreter) Add(lhs, rhs value.Value) (value.Value, error) {
 	switch lhs := lhs.(type) {
 	case *value.Int:
-		if lhs.Value == 0 {
-			if rhs, ok := rhs.(*value.Int); ok {
-				return rhs, nil
-			}
-
-			return rhs.AsInt(), nil
-		}
-
-		rhs := rhs.AsInt()
-		if rhs.Value == 0 {
-			return lhs, nil
-		}
-
-		return value.NewInt(lhs.Value + rhs.Value), nil
+		return value.NewInt(lhs.Value + rhs.AsInt().Value), nil
 	case *value.String:
-		if lhs.Value == "" {
-			if rhs, ok := rhs.(*value.String); ok {
-				return rhs, nil
-			}
-
-			return rhs.AsString(), nil
-		}
-
-		rhs := rhs.AsString()
-		if rhs.Value == "" {
-			return lhs, nil
-		}
-
-		return value.NewConcatString(lhs, rhs), nil
+		return value.NewConcatString(lhs, rhs.AsString()), nil
 	default:
 		return nil, fmt.Errorf("cannot add %s and %s", lhs, rhs)
 	}
