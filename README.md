@@ -4,20 +4,20 @@ This is a Go implementation of the [Knight language](https://github.com/knight-l
 
 ## Building
 
-Go 1.16 is required.
+Go 1.17 is required.
 
-To build just run `go build` in the root of the project, or run the build script with `go run build/main.go`.
+To build just run `go build` in the root of the project, or run the build script with `go run build.go`.
 
 The build script will run tests, linters, and will inject extra build information that gets printed when `knight version` or `knight -version` is run.
 
 The build script also does things like stripping paths, disabling symbol tables, and disabling DWARF generation by default as well. To include debug information in the build using the build script run with the `-debug` flag:
 ```sh
-go run build/main.go -debug
+go run build.go -debug
 ```
 
 The `-race` flag can also be used to enable the data race detector:
 ```sh
-go run build/main.go -debug -race
+go run build.go -debug -race
 ```
 
 ### Reckless
@@ -32,7 +32,7 @@ go build -tags "reckless"
 ```
 ...or...
 ```sh
-go run build/main.go -reckless
+go run build.go -reckless
 ```
 
 ## Usage
