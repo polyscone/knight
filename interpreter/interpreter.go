@@ -52,6 +52,13 @@ func (i *Interpreter) eval(node ast.Node) (value.Value, error) {
 		return v.Value, nil
 	case *ast.Call:
 		switch v.Letter {
+		case 'A':
+			val, err := i.eval(v.Args[0])
+			if err != nil {
+				return nil, err
+			}
+
+			return i.ASCII(val)
 		case 'B':
 			return i.Block(v.Args[0])
 		case 'C':

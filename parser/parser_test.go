@@ -98,6 +98,16 @@ func TestGeneratedASTStructure(t *testing.T) {
 		// 	"(program (noop 1))",
 		// },
 		{
+			"word function ascii",
+			"A 1",
+			"(program (A 1))",
+		},
+		{
+			"word function ascii long",
+			"ASCII 1",
+			"(program (ASCII 1))",
+		},
+		{
 			"word function block",
 			"B 1",
 			"(program (B 1))",

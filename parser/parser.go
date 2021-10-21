@@ -11,6 +11,7 @@ import (
 )
 
 var builtinArities = map[byte]int{
+	'A': 1,
 	'B': 1,
 	'C': 1,
 	'D': 1,

@@ -108,6 +108,8 @@ func TestFunctionTokens(t *testing.T) {
 		name  string
 		input string
 	}{
+		{"word function ascii", "A"},
+		{"word function ascii long", "ASCII"},
 		{"word function block", "B"},
 		{"word function block long", "BLOCK"},
 		{"word function call", "C"},

@@ -321,7 +321,7 @@ func isPunc(r byte) bool {
 
 func isWordFuncStart(r byte) bool {
 	switch r {
-	case 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'W', 'X':
+	case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'W', 'X':
 		return true
 	}
 

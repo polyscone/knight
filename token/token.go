@@ -22,6 +22,7 @@ const (
 	And
 	Or
 	Not
+	ASCII
 	Add
 	Sub
 	Mul
@@ -69,6 +70,8 @@ func (k Kind) String() string {
 		return "or"
 	case Not:
 		return "not"
+	case ASCII:
+		return "ascii"
 	case Add:
 		return "add"
 	case Sub:
