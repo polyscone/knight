@@ -295,11 +295,11 @@ func notNewline(r byte) bool {
 
 func isWhitespace(r byte) bool {
 	switch r {
-	case ':', '(', ')', '{', '}', '[', ']':
+	case ' ', '\t', '\n', '\r', ':', '(', ')', '{', '}', '[', ']':
 		return true
 	}
 
-	return r == ' ' || r == '\t' || r == '\n' || r == '\r'
+	return false
 }
 
 func notWhitespace(r byte) bool {
