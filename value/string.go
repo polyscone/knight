@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/polyscone/knight/build"
+	"github.com/polyscone/knight/options"
 )
 
 // MaxInternStringLength defines the maximum length of an interned string.
@@ -94,7 +94,7 @@ func NewString(s string) *String {
 		return NewUniqueString(s)
 	}
 
-	if !build.Reckless {
+	if !options.Reckless {
 		strs.Lock()
 		defer strs.Unlock()
 	}
@@ -127,7 +127,7 @@ func NewSubString(s *String, start, end int) *String {
 	}
 
 	if start <= math.MaxUint16 && end <= math.MaxUint16 {
-		if !build.Reckless {
+		if !options.Reckless {
 			substrs.Lock()
 			defer substrs.Unlock()
 		}
@@ -145,7 +145,7 @@ func NewSubString(s *String, start, end int) *String {
 		return v
 	}
 
-	if !build.Reckless {
+	if !options.Reckless {
 		substrsSlow.Lock()
 		defer substrsSlow.Unlock()
 	}
@@ -175,7 +175,7 @@ func NewConcatString(lhs, rhs *String) *String {
 		return NewString(lhs.Value + rhs.Value)
 	}
 
-	if !build.Reckless {
+	if !options.Reckless {
 		concats.Lock()
 		defer concats.Unlock()
 	}
@@ -196,7 +196,7 @@ func NewConcatString(lhs, rhs *String) *String {
 // NewIntString will return a runtime String value that is the string
 // representation of the given integer.
 func NewIntString(i int) *String {
-	if !build.Reckless {
+	if !options.Reckless {
 		intStrs.Lock()
 		defer intStrs.Unlock()
 	}

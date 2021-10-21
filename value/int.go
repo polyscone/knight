@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/polyscone/knight/build"
+	"github.com/polyscone/knight/options"
 )
 
 // These values define the range of ints to intern.
@@ -73,7 +73,7 @@ func NewInt(i int) *Int {
 		return NewUniqueInt(i)
 	}
 
-	if !build.Reckless {
+	if !options.Reckless {
 		ints.Lock()
 		defer ints.Unlock()
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/polyscone/knight/build"
+	"github.com/polyscone/knight/options"
 )
 
 // Global represents a global name/value pair.
@@ -41,7 +41,7 @@ type GlobalStore struct {
 // function multiple times with the same store and name will return the
 // same global object.
 func (gs *GlobalStore) New(name string) *Global {
-	if !build.Reckless {
+	if !options.Reckless {
 		gs.Lock()
 		defer gs.Unlock()
 	}

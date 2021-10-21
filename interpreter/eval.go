@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/polyscone/knight/ast"
-	"github.com/polyscone/knight/build"
+	"github.com/polyscone/knight/options"
 	"github.com/polyscone/knight/value"
 )
 
@@ -18,12 +18,12 @@ var programs = struct {
 func (i *Interpreter) Eval(val value.Value) (value.Value, error) {
 	s := val.AsString()
 
-	if !build.Reckless {
+	if !options.Reckless {
 		programs.Lock()
 	}
 
 	if program, ok := programs.data[s]; ok {
-		if !build.Reckless {
+		if !options.Reckless {
 			programs.Unlock()
 		}
 
@@ -37,7 +37,7 @@ func (i *Interpreter) Eval(val value.Value) (value.Value, error) {
 
 	programs.data[s] = program
 
-	if !build.Reckless {
+	if !options.Reckless {
 		programs.Unlock()
 	}
 
