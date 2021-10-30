@@ -5,8 +5,7 @@ import (
 	"github.com/polyscone/knight/value"
 )
 
-// Binary represents an AST node that expects to hole two
-// non-nil ast.Nodes.
+// Binary represents an AST node that expects to hold two non-nil ast.Nodes.
 type Binary struct {
 	value.Expr
 

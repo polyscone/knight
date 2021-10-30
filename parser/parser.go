@@ -117,11 +117,7 @@ func (p *Parser) parseExpr() (ast.Node, error) {
 		letter := tok.Lexeme[0]
 		arity, ok := builtinArities[letter]
 		if !ok {
-			if tok.Lexeme == "XD" {
-				arity = 1
-			} else {
-				return ast.Invalid, fmt.Errorf("unexpected function %q", tok.Lexeme)
-			}
+			return ast.Invalid, fmt.Errorf("unexpected function %q", tok.Lexeme)
 		}
 
 		args := make([]ast.Node, arity)
