@@ -34,5 +34,4 @@
 .Trashes
 trace.out
 
-knight
-knight.exe
+/knight*

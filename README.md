@@ -10,7 +10,7 @@ To build just run `go build` in the root of the project, or run the build script
 
 The build script will run tests, linters, and will inject extra build information that gets printed when `knight version` or `knight -version` is run.
 
-The build script also does things like stripping paths, disabling symbol tables, and disabling DWARF generation by default as well. To include debug information in the build using the build script run with the `-debug` flag:
+The build script will do things like stripping paths, disabling symbol tables, and disabling DWARF generation by default as well. To include debug information in the build using the build script run with the `-debug` flag:
 ```sh
 go run build.go -debug
 ```
@@ -19,6 +19,17 @@ The `-race` flag can also be used to enable the data race detector:
 ```sh
 go run build.go -debug -race
 ```
+
+To run tests:
+```sh
+go run build.go -test
+```
+...or...
+```sh
+go run build.go -watch -clear -test
+```
+
+You can run `go run build.go -help` to see all of the available options.
 
 ### Reckless
 
@@ -32,7 +43,7 @@ go build -tags "reckless"
 ```
 ...or...
 ```sh
-go run build.go -reckless
+go run build.go -tags "reckless"
 ```
 
 ## Usage

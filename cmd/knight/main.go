@@ -24,9 +24,9 @@ var (
 	branch  = "unset"
 	commit  = "unset"
 	built   = "unset"
+	tags    = "unset"
 	target  = "unset"
 	race    = "unset"
-	tags    = "unset"
 )
 
 var (

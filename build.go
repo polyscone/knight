@@ -6,68 +6,273 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 )
 
 var (
-	buildTags = []string{}
-	testTags  = append([]string{"test"}, buildTags...)
+	buildTags = ""
+	testTags  = buildTags + " test"
 )
 
 var (
-	debug    = flag.Bool("debug", false, "Enable symbol table/DWARF generation and disable optimisations/inlining")
-	race     = flag.Bool("race", false, "Enable data race detection")
-	reckless = flag.Bool("reckless", false, "Enable reckless behaviour")
+	debug         = flag.Bool("debug", false, "Enable symbol table/DWARF generation and disable optimisations/inlining")
+	race          = flag.Bool("race", false, "Enable data race detection in the final binary")
+	userBuildTags = flag.String("tags", "", "Additional build tags")
+	userTestTags  = flag.String("test-tags", "", "Additional test build tags")
+
+	buildEnabled    = flag.Bool("build", false, "Enable building the final binary")
+	clearEnabled    = flag.Bool("clear", false, "If set then the console will be cleared before running the build")
+	coverEnabled    = flag.Bool("cover", false, "Generates an HTML cover report that's opened in the browser if watch is disabled")
+	generateEnabled = flag.Bool("generate", false, "Enable generating code before build")
+	lintEnabled     = flag.Bool("lint", false, "Enable linting before build")
+	testEnabled     = flag.Bool("test", false, "Enable tests before build")
+	watchEnabled    = flag.Bool("watch", false, "Watches for changes and re-runs the build if changes are detected")
+	watchExts       = flag.String("watch-exts", ".go .json .sql", "A space separated list of file extensions to watch")
+	watchInterval   = flag.Duration("watch-interval", 2*time.Second, "The interval that watch mode checks for file changes")
 )
 
 func main() {
 	flag.Parse()
 
-	fmt.Println("Building:")
+	if tags := strings.TrimSpace(*userBuildTags); tags != "" {
+		buildTags += " " + tags
+	}
 
-	generate()
-	test()
-	lint()
-	build()
+	if tags := strings.TrimSpace(*userTestTags); tags != "" {
+		testTags += " " + tags
+	}
+
+	buildTags = strings.TrimSpace(buildTags)
+	testTags = strings.TrimSpace(testTags)
+
+	*watchExts = strings.TrimSpace(*watchExts)
+
+	if !*buildEnabled && !*generateEnabled && !*lintEnabled && !*testEnabled && !*coverEnabled {
+		*generateEnabled = true
+		*lintEnabled = true
+		*testEnabled = true
+		*buildEnabled = true
+	}
+
+	pkg := flag.Arg(0)
+
+	// Default to building all commands
+	if pkg == "" {
+		pkg = "./cmd/..."
+	}
+
+	// Always only build local commands
+	if !strings.HasPrefix(pkg, "./") {
+		fmt.Printf("Please build a local package by prefixing the package name with %q\n", "./")
+
+		os.Exit(1)
+	}
+
+	run(pkg)
+
+	if *watchEnabled {
+		exts := make(map[string]struct{})
+		for _, ext := range strings.Split(*watchExts, " ") {
+			if ext == "" {
+				continue
+			}
+
+			if !strings.HasPrefix(ext, ".") {
+				ext = "." + ext
+			}
+
+			exts[ext] = struct{}{}
+		}
+
+		files := make(map[string]time.Time)
+		for {
+			var changed bool
+
+			filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
+				if d.IsDir() {
+					return nil
+				}
+
+				if _, ok := exts[filepath.Ext(path)]; !ok {
+					return nil
+				}
+
+				info, err := d.Info()
+				if err != nil {
+					return err
+				}
+
+				if modified, ok := files[path]; !changed && ok {
+					changed = modified.Before(info.ModTime())
+				}
+
+				files[path] = info.ModTime()
+
+				return nil
+			})
+
+			if changed {
+				run(pkg)
+			}
+
+			time.Sleep(*watchInterval)
+		}
+	}
 }
 
-func generate() {
+func run(pkg string) {
+	if *clearEnabled {
+		clear()
+	}
+
+	fmt.Printf("Running build @ %v:\n", time.Now().Format(time.UnixDate))
+
+	if *generateEnabled {
+		if err := generate(); err != nil {
+			if !*watchEnabled {
+				os.Exit(1)
+			}
+
+			return
+		}
+	}
+
+	if *lintEnabled {
+		if err := lint(); err != nil {
+			if !*watchEnabled {
+				os.Exit(1)
+			}
+
+			return
+		}
+	}
+
+	if *testEnabled && !*coverEnabled {
+		if err := test(); err != nil {
+			if !*watchEnabled {
+				os.Exit(1)
+			}
+
+			return
+		}
+	}
+
+	if *coverEnabled {
+		if err := cover(); err != nil {
+			if !*watchEnabled {
+				os.Exit(1)
+			}
+
+			return
+		}
+	}
+
+	if *buildEnabled {
+		if err := build(pkg); err != nil {
+			if !*watchEnabled {
+				os.Exit(1)
+			}
+
+			return
+		}
+	}
+}
+
+func clear() {
+	switch runtime.GOOS {
+	case "darwin", "linux":
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	case "windows":
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func generate() error {
 	fmt.Print("    go generate... ")
 
 	out, err := exec.Command("go", "generate", "./...").CombinedOutput()
 	if err != nil {
+		fmt.Println("error")
+
 		if len(out) > 0 {
 			fmt.Println(string(out))
 		}
 
-		os.Exit(1)
+		return err
+	} else {
+		fmt.Println("ok")
 	}
 
-	fmt.Println("ok")
+	return nil
 }
 
-func test() {
+func test() error {
 	fmt.Print("    go test... ")
 
-	out, err := exec.Command("go", "test", "-race", "-tags", strings.Join(testTags, " "), "./...").CombinedOutput()
+	out, err := exec.Command("go", "test", "-race", "-tags", testTags, "./...").CombinedOutput()
 	if err != nil {
-		fmt.Println()
+		fmt.Println("error")
 
 		if len(out) > 0 {
 			fmt.Println(string(out))
 		}
 
-		os.Exit(1)
+		return err
+	} else {
+		fmt.Println("ok")
 	}
 
-	fmt.Println("ok")
+	return nil
 }
 
-func lint() {
+func cover() error {
+	fmt.Print("    go test (cover)... ")
+
+	out, err := exec.Command("go", "test", "-race", "-tags", testTags, "-coverprofile", "_cover.out", "./...").CombinedOutput()
+	if err != nil {
+		fmt.Println("error")
+
+		if len(out) > 0 {
+			fmt.Println(string(out))
+		}
+
+		return err
+	} else {
+		fmt.Println("ok")
+	}
+
+	if !*watchEnabled {
+		fmt.Print("    go tool cover... ")
+
+		out, err = exec.Command("go", "tool", "cover", "-html", "_cover.out").CombinedOutput()
+		if err != nil {
+			fmt.Println("error")
+
+			if len(out) > 0 {
+				fmt.Println(string(out))
+			}
+
+			return err
+		} else {
+			fmt.Println("ok")
+		}
+	}
+
+	return nil
+}
+
+func lint() error {
 	fmt.Print("    golangci-lint... ")
 
 	if lint, err := exec.LookPath("golangci-lint"); err != nil {
@@ -79,42 +284,35 @@ func lint() {
 
 		os.Exit(1)
 	} else {
-		out, err := exec.Command(lint, "run", "--color", "always", "--build-tags", strings.Join(testTags, " ")).CombinedOutput()
+		out, err := exec.Command(lint, "run", "--color", "always", "--build-tags", testTags).CombinedOutput()
 		if err != nil {
-			fmt.Println()
+			fmt.Println("error")
 
 			if len(out) > 0 {
 				fmt.Println(string(out))
 			}
 
-			os.Exit(1)
+			return err
+		} else {
+			fmt.Println("ok")
 		}
-
-		fmt.Println("ok")
 	}
+
+	return nil
 }
 
-func build() {
-	fmt.Print("    go build... ")
-
-	if *reckless {
-		buildTags = append(buildTags, "reckless")
-	}
+func build(pkg string) error {
+	fmt.Printf("    go build %v... ", strings.TrimSuffix(pkg, "..."))
 
 	cmd := "go"
-	args := []string{"build", "-v", "-tags", strings.Join(buildTags, " ")}
+	args := []string{"build", "-v", "-tags", buildTags}
 	gcflags := []string{}
 	ldflags := []string{
 		fmt.Sprintf("-X 'main.version=%v'", closestTag()),
 		fmt.Sprintf("-X 'main.branch=%v'", commitBranch()),
 		fmt.Sprintf("-X 'main.commit=%v'", commitHash()),
 		fmt.Sprintf("-X 'main.built=%v'", time.Now().UTC().Format(time.RFC3339)),
-	}
-
-	if len(buildTags) == 0 {
-		ldflags = append(ldflags, "-X 'main.tags=None'")
-	} else {
-		ldflags = append(ldflags, fmt.Sprintf("-X 'main.tags=%v'", strings.Join(buildTags, " ")))
+		fmt.Sprintf("-X 'main.tags=%v'", buildTags),
 	}
 
 	if *debug {
@@ -152,17 +350,19 @@ func build() {
 		args = append(args, "-ldflags", strings.Join(ldflags, " "))
 	}
 
+	args = append(args, pkg)
+
 	if out, err := exec.Command(cmd, args...).CombinedOutput(); err != nil {
-		fmt.Println()
+		fmt.Println("error")
 
 		if len(out) > 0 {
 			fmt.Println(string(out))
 		}
 
-		os.Exit(1)
+		return err
+	} else {
+		fmt.Print("ok ")
 	}
-
-	fmt.Print("ok ")
 
 	var info []string
 
@@ -177,6 +377,8 @@ func build() {
 	}
 
 	fmt.Printf("(%v)\n", strings.Join(info, "/"))
+
+	return nil
 }
 
 func closestTag() string {
