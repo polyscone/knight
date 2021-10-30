@@ -22,8 +22,11 @@ var (
 )
 
 var (
-	debug         = flag.Bool("debug", false, "Enable symbol table/DWARF generation and disable optimisations/inlining")
-	race          = flag.Bool("race", false, "Enable data race detection in the final binary")
+	debug = flag.Bool("debug", false, "Enable symbol table/DWARF generation and disable optimisations/inlining")
+	race  = flag.Bool("race", false, "Enable data race detection in the final binary")
+
+	goos          = flag.String("goos", "", "Set the GOOS environment variable for the build")
+	goarch        = flag.String("goarch", "", "Set the GOARCH environment variable for the build")
 	userBuildTags = flag.String("tags", "", "Additional build tags")
 	userTestTags  = flag.String("test-tags", "", "Additional test build tags")
 
@@ -304,7 +307,11 @@ func lint() error {
 func build(pkg string) error {
 	fmt.Printf("    go build %v... ", strings.TrimSuffix(pkg, "..."))
 
-	cmd := "go"
+	buildTagsMessage := buildTags
+	if buildTagsMessage == "" {
+		buildTagsMessage = "—"
+	}
+
 	args := []string{"build", "-v", "-tags", buildTags}
 	gcflags := []string{}
 	ldflags := []string{
@@ -312,7 +319,7 @@ func build(pkg string) error {
 		fmt.Sprintf("-X 'main.branch=%v'", commitBranch()),
 		fmt.Sprintf("-X 'main.commit=%v'", commitHash()),
 		fmt.Sprintf("-X 'main.built=%v'", time.Now().UTC().Format(time.RFC3339)),
-		fmt.Sprintf("-X 'main.tags=%v'", buildTags),
+		fmt.Sprintf("-X 'main.tags=%v'", buildTagsMessage),
 	}
 
 	if *debug {
@@ -352,7 +359,20 @@ func build(pkg string) error {
 
 	args = append(args, pkg)
 
-	if out, err := exec.Command(cmd, args...).CombinedOutput(); err != nil {
+	var env []string
+	if *goos != "" {
+		env = append(env, "GOOS="+*goos)
+	}
+	if *goarch != "" {
+		env = append(env, "GOARCH="+*goarch)
+	}
+
+	cmd := exec.Command("go", args...)
+	if len(env) > 0 {
+		cmd.Env = append(os.Environ(), env...)
+	}
+
+	if out, err := cmd.CombinedOutput(); err != nil {
 		fmt.Println("error")
 
 		if len(out) > 0 {

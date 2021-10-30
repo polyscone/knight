@@ -20,13 +20,13 @@ import (
 )
 
 var (
-	version = "unset"
-	branch  = "unset"
-	commit  = "unset"
-	built   = "unset"
-	tags    = "unset"
-	target  = "unset"
-	race    = "unset"
+	version = "—"
+	branch  = "—"
+	commit  = "—"
+	built   = "—"
+	tags    = "—"
+	target  = "—"
+	race    = "—"
 )
 
 var (
