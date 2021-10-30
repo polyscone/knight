@@ -24,7 +24,17 @@ func (g Global) Dump() string {
 
 // String prints a string form of Global as an s-expression for testing.
 func (g Global) String() string {
-	return fmt.Sprintf("(var %q)", g.Name)
+	return g.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (g Global) ASTString(style string) string {
+	switch style {
+	case "sexp":
+		return fmt.Sprintf("(var %q)", g.Name)
+	default:
+		return fmt.Sprintf("var %q", g.Name)
+	}
 }
 
 // GlobalStore holds the state for a group of global name/value pairs.

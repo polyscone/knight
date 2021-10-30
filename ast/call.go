@@ -30,24 +30,21 @@ func (c Call) Dump() string {
 
 // String prints a string form of Call as an s-expression for testing.
 func (c Call) String() string {
+	return c.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (c Call) ASTString(style string) string {
 	if len(c.Args) == 0 {
 		return c.Name
 	}
 
 	args := make([]string, len(c.Args))
 	for i := range c.Args {
-		args[i] = c.Args[i].String()
+		args[i] = c.Args[i].ASTString(style)
 	}
 
-	var sb strings.Builder
-
-	sb.WriteString("(")
-	sb.WriteString(c.Name)
-	sb.WriteString(" ")
-	sb.WriteString(strings.Join(args, " "))
-	sb.WriteString(")")
-
-	return sb.String()
+	return SprintNode(style, c.Name, args...)
 }
 
 // NewCall returns a Call AST node that represents a call with the given

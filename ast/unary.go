@@ -24,7 +24,12 @@ func (u Unary) Dump() string {
 
 // String prints a string form of Unary as an s-expression for testing.
 func (u Unary) String() string {
-	return fmt.Sprintf("(%s %s)", u.Op, u.Node)
+	return u.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (u Unary) ASTString(style string) string {
+	return SprintNode(style, u.Op.String(), u.Node.ASTString(style))
 }
 
 // NewUnary returns a Unary AST node.

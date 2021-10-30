@@ -64,6 +64,11 @@ func (i *Int) Dump() string {
 // String prints a string form of the Int as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (i *Int) String() string {
+	return i.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (i *Int) ASTString(style string) string {
 	return strconv.Itoa(i.Value)
 }
 

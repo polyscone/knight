@@ -33,6 +33,7 @@ var (
 	expression   = flag.String("e", "", "An expression to evaluate")
 	filename     = flag.String("f", "", "A path to a file to run")
 	profile      = flag.String("p", "", "The name of a profile to record")
+	ast          = flag.String("a", "", `Print the program's AST; available styles are ["sexp", "tree", "waterfall"]`)
 	versionQuery = flag.Bool("version", false, "Display binary version information")
 )
 
@@ -128,6 +129,12 @@ func main() {
 		fmt.Println(err)
 
 		os.Exit(1)
+	}
+
+	if *ast != "" {
+		fmt.Println(program.ASTString(*ast))
+
+		return
 	}
 
 	rand.Seed(time.Now().UnixNano())

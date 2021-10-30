@@ -51,7 +51,17 @@ func (b *Block) Dump() string {
 // String prints a string form of the Block as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (b *Block) String() string {
-	return fmt.Sprintf("(block %v)", b.Value)
+	return b.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (b *Block) ASTString(style string) string {
+	switch style {
+	case "sexp":
+		return fmt.Sprintf("(block %v)", b.Value)
+	default:
+		return fmt.Sprintf("block %v", b.Value)
+	}
 }
 
 // NewBlock will return a Block that wraps the given expression, ready for use

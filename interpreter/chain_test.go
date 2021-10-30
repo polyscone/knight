@@ -31,7 +31,12 @@ func TestChain(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if result != tc.rhs {
+			// To compare interfaces one side must be assignable to the other
+			// Since Value and Node aren't assignable to each other we convert
+			// them both to the empty interface
+			// This makes them assignable to each other and allows for comparison
+			// of their dynamic values
+			if interface{}(result) != interface{}(tc.rhs) {
 				t.Errorf("want %v (%p), got %v (%p)", tc.rhs, tc.rhs, result, result)
 			}
 		})

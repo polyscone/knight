@@ -52,6 +52,11 @@ func (b *Bool) Dump() string {
 // String prints a string form of the Bool as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (b *Bool) String() string {
+	return b.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (b *Bool) ASTString(style string) string {
 	if b.Value {
 		return "true"
 	}

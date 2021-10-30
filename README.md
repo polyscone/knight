@@ -50,6 +50,8 @@ go run build.go -tags "reckless"
 
 Once built you can use the `-e` flag to provide a string expression to run, or you can use the `-f` flag to provide a file to run.
 
+If the `-a` flag is supplied with one of the values `"sexp"`, `"tree"`, or `"waterfall"` then the AST of the supplied program will be printed in that style.
+
 ## Profiling
 
 To generate a pprof profile you can run `knight` with either `-p cpu` or `-p mem`.

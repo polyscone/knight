@@ -1,8 +1,6 @@
 package ast
 
 import (
-	"fmt"
-
 	"github.com/polyscone/knight/token"
 	"github.com/polyscone/knight/value"
 )
@@ -19,7 +17,17 @@ type Binary struct {
 
 // String prints a string form of Binary as an s-expression for testing.
 func (b Binary) String() string {
-	return fmt.Sprintf("(%s %s %s)", b.Op, b.LHS, b.RHS)
+	return b.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (b Binary) ASTString(style string) string {
+	return SprintNode(
+		style,
+		b.Op.String(),
+		b.LHS.ASTString(style),
+		b.RHS.ASTString(style),
+	)
 }
 
 // NewBinary returns a binary AST node that expects to hold two

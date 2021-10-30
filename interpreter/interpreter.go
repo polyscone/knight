@@ -169,12 +169,6 @@ func (i *Interpreter) eval(node ast.Node) (value.Value, error) {
 			return i.While(arg0, arg1)
 		}
 
-		if v.Name == "XD" {
-			fmt.Print(v.Args[0])
-
-			return value.NewNull(), nil
-		}
-
 		return nil, fmt.Errorf("undefined function: %v", v.Name)
 	case *ast.Unary:
 		val, err := i.eval(v.Node)

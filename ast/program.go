@@ -1,8 +1,6 @@
 package ast
 
 import (
-	"fmt"
-
 	"github.com/polyscone/knight/value"
 )
 
@@ -14,5 +12,10 @@ type Program struct {
 
 // String prints a string form of Program as an s-expression for testing.
 func (p Program) String() string {
-	return fmt.Sprintf("(program %s)", p.Root)
+	return p.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (p Program) ASTString(style string) string {
+	return SprintNode(style, "program", p.Root.ASTString(style))
 }

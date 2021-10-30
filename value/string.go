@@ -85,6 +85,11 @@ func (s *String) Dump() string {
 // String prints a string form of the String as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (s *String) String() string {
+	return s.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (s *String) ASTString(style string) string {
 	return fmt.Sprintf("%q", s.Value)
 }
 

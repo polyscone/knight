@@ -35,6 +35,11 @@ func (n *Null) Dump() string {
 // String prints a string form of the Null as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (n *Null) String() string {
+	return n.ASTString("sexp")
+}
+
+// ASTString returns a string representation of the AST in the requested style.
+func (n *Null) ASTString(style string) string {
 	return "null"
 }
 
