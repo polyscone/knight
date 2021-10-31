@@ -20,13 +20,12 @@ import (
 )
 
 var (
-	version = "—"
-	branch  = "—"
-	commit  = "—"
-	built   = "—"
-	tags    = "—"
-	target  = "—"
-	race    = "—"
+	version = "-"
+	branch  = "-"
+	commit  = "-"
+	tags    = "-"
+	target  = "-"
+	race    = "-"
 )
 
 var (
@@ -41,16 +40,11 @@ func main() {
 	flag.Parse()
 
 	if *versionQuery || flag.Arg(0) == "version" {
-		if t, err := time.Parse(time.RFC3339, built); err == nil {
-			built = t.Local().Format(time.UnixDate)
-		}
-
 		var message string
 
 		message += fmt.Sprintln("Version:      ", version)
 		message += fmt.Sprintln("Branch:       ", branch)
 		message += fmt.Sprintln("Commit:       ", commit)
-		message += fmt.Sprintln("Built:        ", built)
 		message += fmt.Sprintln("Tags:         ", tags)
 		message += fmt.Sprintln("Go version:   ", strings.TrimPrefix(runtime.Version(), "go"))
 		message += fmt.Sprintln("OS/Arch:      ", runtime.GOOS+"/"+runtime.GOARCH)

@@ -309,7 +309,7 @@ func build(pkg string) error {
 
 	buildTagsMessage := buildTags
 	if buildTagsMessage == "" {
-		buildTagsMessage = "—"
+		buildTagsMessage = "-"
 	}
 
 	args := []string{"build", "-v", "-tags", buildTags}
@@ -318,7 +318,6 @@ func build(pkg string) error {
 		fmt.Sprintf("-X 'main.version=%v'", closestTag()),
 		fmt.Sprintf("-X 'main.branch=%v'", commitBranch()),
 		fmt.Sprintf("-X 'main.commit=%v'", commitHash()),
-		fmt.Sprintf("-X 'main.built=%v'", time.Now().UTC().Format(time.RFC3339)),
 		fmt.Sprintf("-X 'main.tags=%v'", buildTagsMessage),
 	}
 
