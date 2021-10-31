@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/options"
 )
 
@@ -30,8 +31,6 @@ var ints = struct {
 
 // Int represents a runtime integer value.
 type Int struct {
-	Expr
-
 	Value int
 }
 
@@ -64,11 +63,11 @@ func (i *Int) Dump() string {
 // String prints a string form of the Int as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (i *Int) String() string {
-	return i.ASTString("sexp")
+	return i.ASTString(ast.StyleSexpr)
 }
 
 // ASTString returns a string representation of the AST in the requested style.
-func (i *Int) ASTString(style string) string {
+func (i *Int) ASTString(style ast.Style) string {
 	return strconv.Itoa(i.Value)
 }
 

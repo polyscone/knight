@@ -47,7 +47,7 @@ func (p *Parser) Parse(globals *value.GlobalStore, r io.ByteScanner) (ast.Progra
 	p.lexer.Load(r)
 	p.globals = globals
 
-	program := ast.Program{Globals: p.globals}
+	program := ast.Program{}
 
 	expr, err := p.parseExpr()
 	if err != nil {
@@ -72,13 +72,13 @@ func (p *Parser) parseExpr() (ast.Node, error) {
 			return ast.Invalid, err
 		}
 
-		return ast.NewInt(i), nil
+		return value.NewInt(i), nil
 	case token.String:
-		return ast.NewString(tok.Lexeme), nil
+		return value.NewString(tok.Lexeme), nil
 	case token.True, token.False:
-		return ast.NewBool(tok.Kind == token.True), nil
+		return value.NewBool(tok.Kind == token.True), nil
 	case token.Null:
-		return ast.NewNull(), nil
+		return value.NewNull(), nil
 	case token.Not, token.Noop, token.System:
 		value, err := p.parseExpr()
 		if err != nil {
@@ -112,7 +112,7 @@ func (p *Parser) parseExpr() (ast.Node, error) {
 
 		return ast.NewBinary(tok.Kind, lhs, rhs), nil
 	case token.Variable:
-		return ast.NewGlobal(p.globals.New(tok.Lexeme)), nil
+		return p.globals.New(tok.Lexeme), nil
 	case token.Call:
 		letter := tok.Lexeme[0]
 		arity, ok := builtinArities[letter]

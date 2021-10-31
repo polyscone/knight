@@ -1,11 +1,11 @@
 package value
 
+import "github.com/polyscone/knight/ast"
+
 var null = &Null{}
 
 // Int represents a runtime null value.
-type Null struct {
-	Expr
-}
+type Null struct{}
 
 // AsBool converts the caller to a runtime Bool representation of Null.
 func (n *Null) AsBool() *Bool {
@@ -35,11 +35,11 @@ func (n *Null) Dump() string {
 // String prints a string form of the Null as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (n *Null) String() string {
-	return n.ASTString("sexp")
+	return n.ASTString(ast.StyleSexpr)
 }
 
 // ASTString returns a string representation of the AST in the requested style.
-func (n *Null) ASTString(style string) string {
+func (n *Null) ASTString(style ast.Style) string {
 	return "null"
 }
 

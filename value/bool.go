@@ -1,6 +1,10 @@
 package value
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/polyscone/knight/ast"
+)
 
 // _true and _false represent runtime values for true and false booleans.
 // No other Bool values should be created at runtime.
@@ -11,8 +15,6 @@ var (
 
 // Bool represents a runtime boolean value.
 type Bool struct {
-	Expr
-
 	Value bool
 }
 
@@ -52,11 +54,11 @@ func (b *Bool) Dump() string {
 // String prints a string form of the Bool as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (b *Bool) String() string {
-	return b.ASTString("sexp")
+	return b.ASTString(ast.StyleSexpr)
 }
 
 // ASTString returns a string representation of the AST in the requested style.
-func (b *Bool) ASTString(style string) string {
+func (b *Bool) ASTString(style ast.Style) string {
 	if b.Value {
 		return "true"
 	}

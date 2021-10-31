@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/options"
 )
 
 // Global represents a global name/value pair.
 type Global struct {
-	Expr
-
 	Name  string
 	Value Value
 }
@@ -24,13 +23,13 @@ func (g Global) Dump() string {
 
 // String prints a string form of Global as an s-expression for testing.
 func (g Global) String() string {
-	return g.ASTString("sexp")
+	return g.ASTString(ast.StyleSexpr)
 }
 
 // ASTString returns a string representation of the AST in the requested style.
-func (g Global) ASTString(style string) string {
+func (g Global) ASTString(style ast.Style) string {
 	switch style {
-	case "sexp":
+	case ast.StyleSexpr:
 		return fmt.Sprintf("(var %q)", g.Name)
 	default:
 		return fmt.Sprintf("var %q", g.Name)

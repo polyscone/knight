@@ -4,13 +4,10 @@ import (
 	"fmt"
 
 	"github.com/polyscone/knight/token"
-	"github.com/polyscone/knight/value"
 )
 
 // Unary represents an AST node that describes a unary operation.
 type Unary struct {
-	value.Expr
-
 	Op   token.Kind
 	Node Node
 }
@@ -24,11 +21,11 @@ func (u Unary) Dump() string {
 
 // String prints a string form of Unary as an s-expression for testing.
 func (u Unary) String() string {
-	return u.ASTString("sexp")
+	return u.ASTString(StyleSexpr)
 }
 
 // ASTString returns a string representation of the AST in the requested style.
-func (u Unary) ASTString(style string) string {
+func (u Unary) ASTString(style Style) string {
 	return SprintNode(style, u.Op.String(), u.Node.ASTString(style))
 }
 

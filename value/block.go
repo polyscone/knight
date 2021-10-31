@@ -1,12 +1,14 @@
 package value
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/polyscone/knight/ast"
+)
 
 // Block is the result of the evaluation of the BLOCK function, and wraps an
 // expression that is to be used as the argument to CALL.
 type Block struct {
-	Expr
-
 	Value Expression
 }
 
@@ -51,13 +53,13 @@ func (b *Block) Dump() string {
 // String prints a string form of the Block as an s-expression for testing.
 // The AsString method should be used to convert a value to a runtime String.
 func (b *Block) String() string {
-	return b.ASTString("sexp")
+	return b.ASTString(ast.StyleSexpr)
 }
 
 // ASTString returns a string representation of the AST in the requested style.
-func (b *Block) ASTString(style string) string {
+func (b *Block) ASTString(style ast.Style) string {
 	switch style {
-	case "sexp":
+	case ast.StyleSexpr:
 		return fmt.Sprintf("(block %v)", b.Value)
 	default:
 		return fmt.Sprintf("block %v", b.Value)

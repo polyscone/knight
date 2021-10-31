@@ -3,14 +3,10 @@ package ast
 import (
 	"fmt"
 	"strings"
-
-	"github.com/polyscone/knight/value"
 )
 
 // Call represents an AST node that describes a function call.
 type Call struct {
-	value.Expr
-
 	Name   string
 	Letter byte
 	Args   []Node
@@ -30,11 +26,11 @@ func (c Call) Dump() string {
 
 // String prints a string form of Call as an s-expression for testing.
 func (c Call) String() string {
-	return c.ASTString("sexp")
+	return c.ASTString(StyleSexpr)
 }
 
 // ASTString returns a string representation of the AST in the requested style.
-func (c Call) ASTString(style string) string {
+func (c Call) ASTString(style Style) string {
 	if len(c.Args) == 0 {
 		return c.Name
 	}

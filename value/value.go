@@ -1,14 +1,17 @@
 package value
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/polyscone/knight/ast"
+)
 
 // Expression represents any runtime Knight expression.
 // Runtime values, which implement the Value interface, also implement this
 // interface as they are a slightly more concrete form of an expression.
 type Expression interface {
 	fmt.Stringer
-
-	IsExpr() bool
+	ast.Node
 }
 
 // Value represents a runtime value that can be converted to other types.
@@ -20,14 +23,6 @@ type Value interface {
 	AsString() *String
 	AsExpr() Expression
 	Dump() string
-}
-
-type Expr struct{}
-
-// IsExpr indicates that the implemting type can be used as a
-// runtime Knight expression.
-func (e Expr) IsExpr() bool {
-	return true
 }
 
 // Equal checks to see if two value are equal to each other.

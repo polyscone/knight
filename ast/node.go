@@ -1,10 +1,17 @@
 package ast
 
 import (
+	"fmt"
 	"strings"
 	"unicode/utf8"
+)
 
-	"github.com/polyscone/knight/value"
+type Style int
+
+const (
+	StyleSexpr Style = iota
+	StyleTree
+	StyleWaterfall
 )
 
 // Invalid represents an invalid AST node that, if part of a larger AST, should
@@ -14,9 +21,9 @@ var Invalid Node
 // Node is a wrapper around the lower level AST node.
 // It also wraps concrete values in the case of leaf nodes.
 type Node interface {
-	value.Expression
+	fmt.Stringer
 
-	ASTString(string) string
+	ASTString(Style) string
 }
 
 func indent(str string, length int) string {
@@ -49,9 +56,9 @@ func prefix(str, first, rest string) string {
 	return strings.Join(prefixed, "\n")
 }
 
-func SprintNode(style, name string, parts ...string) string {
+func SprintNode(style Style, name string, parts ...string) string {
 	switch style {
-	case "waterfall":
+	case StyleWaterfall:
 		pretty := name
 
 		if len(parts) > 0 {
@@ -68,7 +75,7 @@ func SprintNode(style, name string, parts ...string) string {
 		}
 
 		return strings.TrimSpace(pretty)
-	case "tree":
+	case StyleTree:
 		pretty := name
 
 		if len(parts) > 0 {

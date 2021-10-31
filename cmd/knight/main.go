@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/polyscone/knight/ast"
 	"github.com/polyscone/knight/interpreter"
 	"github.com/polyscone/knight/lexer"
 	"github.com/polyscone/knight/parser"
@@ -32,7 +33,7 @@ var (
 	expression   = flag.String("e", "", "An expression to evaluate")
 	filename     = flag.String("f", "", "A path to a file to run")
 	profile      = flag.String("p", "", "The name of a profile to record")
-	ast          = flag.String("a", "", `Print the program's AST; available styles are ["sexp", "tree", "waterfall"]`)
+	astStyle     = flag.String("a", "", `Print the program's AST; available styles are ["sexpr", "tree", "waterfall"]`)
 	versionQuery = flag.Bool("version", false, "Display binary version information")
 )
 
@@ -125,8 +126,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *ast != "" {
-		fmt.Println(program.ASTString(*ast))
+	if *astStyle != "" {
+		switch *astStyle {
+		case "sexpr":
+			fmt.Println(program.ASTString(ast.StyleSexpr))
+		case "tree":
+			fmt.Println(program.ASTString(ast.StyleTree))
+		case "waterfall":
+			fmt.Println(program.ASTString(ast.StyleWaterfall))
+		default:
+			flag.Usage()
+		}
 
 		return
 	}
