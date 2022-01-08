@@ -1,37 +1,12 @@
-*.7z
-*.a
-*.bat
-*.cmd
-*.cpu
-*.db
-*.db-shm
-*.db-wal
-*.diff
-*.dll
+# In order to ignore binaries that get built without an extension
+# we start by ignoring everything, then whitelisting all files with extensions
+# and then finally whitelisting all directories
+*
+!*.*
+!*/
+
+# Generic patterns
 *.exe
-*.gz
-*.lnk
-*.log
-*.log.*
-*.mem
-*.node
-*.o
-*.orig
 *.out
 *.pprof
-*.prof
-*.rar
-*.so
-*.test
-*.tz
-*.zip
 *~
-._*
-.AppleDouble
-.DS_Store
-.LSOverride
-.Spotlight-V100
-.Trashes
-trace.out
-
-/knight*
