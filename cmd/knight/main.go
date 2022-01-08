@@ -29,42 +29,43 @@ var (
 	race    = "-"
 )
 
-var (
-	expression   = flag.String("e", "", "An expression to evaluate")
-	filename     = flag.String("f", "", "A path to a file to run")
-	profile      = flag.String("p", "", "The name of a profile to record")
-	astStyle     = flag.String("a", "", `Print the program's AST; available styles are ["sexpr", "tree", "waterfall"]`)
-	versionQuery = flag.Bool("version", false, "Display binary version information")
-)
+var opts struct {
+	expression string
+	filename   string
+	profile    string
+	astStyle   string
+	version    bool
+}
 
 func main() {
+	flag.StringVar(&opts.expression, "e", "", "An expression to evaluate")
+	flag.StringVar(&opts.filename, "f", "", "A path to a file to run")
+	flag.StringVar(&opts.profile, "p", "", "The name of a profile to record")
+	flag.StringVar(&opts.astStyle, "a", "", `Print the program's AST; available styles are: "sexpr", "tree", and "waterfall"`)
+	flag.BoolVar(&opts.version, "version", false, "Display binary version information")
 	flag.Parse()
 
-	if *versionQuery || flag.Arg(0) == "version" {
-		var message string
-
-		message += fmt.Sprintln("Version:      ", version)
-		message += fmt.Sprintln("Branch:       ", branch)
-		message += fmt.Sprintln("Commit:       ", commit)
-		message += fmt.Sprintln("Tags:         ", tags)
-		message += fmt.Sprintln("Go version:   ", strings.TrimPrefix(runtime.Version(), "go"))
-		message += fmt.Sprintln("OS/Arch:      ", runtime.GOOS+"/"+runtime.GOARCH)
-		message += fmt.Sprintln("Target:       ", target)
-		message += fmt.Sprintln("Race detector:", race)
-
-		fmt.Print(message)
+	if opts.version || flag.Arg(0) == "version" {
+		fmt.Println("Version:      ", version)
+		fmt.Println("Branch:       ", branch)
+		fmt.Println("Commit:       ", commit)
+		fmt.Println("Tags:         ", tags)
+		fmt.Println("Go version:   ", strings.TrimPrefix(runtime.Version(), "go"))
+		fmt.Println("OS/Arch:      ", runtime.GOOS+"/"+runtime.GOARCH)
+		fmt.Println("Target:       ", target)
+		fmt.Println("Race detector:", race)
 
 		return
 	}
 
-	if (*expression == "" && *filename == "") || (*expression != "" && *filename != "") {
+	if (opts.expression == "" && opts.filename == "") || (opts.expression != "" && opts.filename != "") {
 		flag.Usage()
 
-		os.Exit(1)
+		os.Exit(2)
 	}
 
 	//nolint:gocritic // it's ok for defers to not run in profile code
-	switch *profile {
+	switch opts.profile {
 	case "cpu":
 		f, err := os.Create("cpu.pprof")
 		if err != nil {
@@ -99,17 +100,17 @@ func main() {
 		}
 		defer trace.Stop()
 	default:
-		if *profile != "" {
-			log.Fatalf("unknown profile type %q", *profile)
+		if opts.profile != "" {
+			log.Fatalf("unknown profile type %q", opts.profile)
 		}
 	}
 
 	var b []byte
-	if *expression != "" {
-		b = []byte(*expression)
+	if opts.expression != "" {
+		b = []byte(opts.expression)
 	} else {
 		var err error
-		if b, err = os.ReadFile(*filename); err != nil {
+		if b, err = os.ReadFile(opts.filename); err != nil {
 			fmt.Println(err)
 
 			os.Exit(1)
@@ -126,8 +127,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *astStyle != "" {
-		switch *astStyle {
+	if opts.astStyle != "" {
+		switch opts.astStyle {
 		case "sexpr":
 			fmt.Println(program.ASTString(ast.StyleSexpr))
 		case "tree":
@@ -136,6 +137,8 @@ func main() {
 			fmt.Println(program.ASTString(ast.StyleWaterfall))
 		default:
 			flag.Usage()
+
+			os.Exit(2)
 		}
 
 		return
