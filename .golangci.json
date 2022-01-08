@@ -1,58 +1,77 @@
 {
-  "linters": {
-    "disable-all": true,
-    "enable": [
-      "asciicheck",
-      "deadcode",
-      "durationcheck",
-      "errcheck",
-      "errorlint",
-      "exhaustive",
-      "exportloopref",
-      "gocritic",
-      "godot",
-      "gofmt",
-      "goimports",
-      "gosec",
-      "gosimple",
-      "govet",
-      "ineffassign",
-      "makezero",
-      "nilerr",
-      "noctx",
-      "nolintlint",
-      "paralleltest",
-      "prealloc",
-      "predeclared",
-      "revive",
-      "staticcheck",
-      "structcheck",
-      "stylecheck",
-      "thelper",
-      "tparallel",
-      "typecheck",
-      "unconvert",
-      "unparam",
-      "unused",
-      "varcheck",
-      "wastedassign",
-      "whitespace"
-    ]
-  },
-  "linters-settings": {
-    "exhaustive": {
-      "default-signifies-exhaustive": true
+    "run": {
+        "allow-parallel-runners": true
     },
-    "nolintlint": {
-      "allow-leading-space": false,
-      "allow-unused": false,
-      "require-explanation": true,
-      "require-specific": true
+    "linters": {
+        "disable-all": true,
+        "enable": [
+            "asciicheck",
+            "bidichk",
+            "bodyclose",
+            "contextcheck",
+            "deadcode",
+            "durationcheck",
+            "errcheck",
+            "errname",
+            "errorlint",
+            "exhaustive",
+            "exportloopref",
+            "forcetypeassert",
+            "goconst",
+            "gocritic",
+            "godot",
+            "gofmt",
+            "gofumpt",
+            "gosec",
+            "gosimple",
+            "govet",
+            "ifshort",
+            "ineffassign",
+            "ireturn",
+            "makezero",
+            "nilerr",
+            "nilnil",
+            "noctx",
+            "nolintlint",
+            "paralleltest",
+            "prealloc",
+            "predeclared",
+            "revive",
+            "rowserrcheck",
+            "sqlclosecheck",
+            "staticcheck",
+            "structcheck",
+            "stylecheck",
+            "tenv",
+            "testpackage",
+            "thelper",
+            "tparallel",
+            "typecheck",
+            "unconvert",
+            "unparam",
+            "unused",
+            "varcheck",
+            "wastedassign",
+            "whitespace"
+        ]
+    },
+    "linters-settings": {
+        "nolintlint": {
+            "allow-leading-space": false,
+            "allow-unused": true,
+            "require-explanation": true,
+            "require-specific": true
+        }
+    },
+    "issues": {
+        "include": [
+            "EXC0002",
+            "EXC0005",
+            "EXC0011",
+            "EXC0012",
+            "EXC0013",
+            "EXC0014",
+            "EXC0015"
+        ]
     }
-  },
-  "issues": {
-    "exclude": [
-      "Range statement for test .* does not use range value in test Run"
-    ]
-  }
 }

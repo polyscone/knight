@@ -14,61 +14,87 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 var (
-	buildTags = ""
-	testTags  = buildTags + " test"
+	tags     = ""
+	testTags = "test"
 )
 
-var (
-	debug = flag.Bool("debug", false, "Enable symbol table/DWARF generation and disable optimisations/inlining")
-	race  = flag.Bool("race", false, "Enable data race detection in the final binary")
-
-	goos          = flag.String("goos", "", "Set the GOOS environment variable for the build")
-	goarch        = flag.String("goarch", "", "Set the GOARCH environment variable for the build")
-	userBuildTags = flag.String("tags", "", "Additional build tags")
-	userTestTags  = flag.String("test-tags", "", "Additional test build tags")
-
-	buildEnabled    = flag.Bool("build", false, "Enable building the final binary")
-	clearEnabled    = flag.Bool("clear", false, "If set then the console will be cleared before running the build")
-	coverEnabled    = flag.Bool("cover", false, "Generates an HTML cover report that's opened in the browser if watch is disabled")
-	generateEnabled = flag.Bool("generate", false, "Enable generating code before build")
-	lintEnabled     = flag.Bool("lint", false, "Enable linting before build")
-	testEnabled     = flag.Bool("test", false, "Enable tests before build")
-	watchEnabled    = flag.Bool("watch", false, "Watches for changes and re-runs the build if changes are detected")
-	watchExts       = flag.String("watch-exts", ".go .json .sql", "A space separated list of file extensions to watch")
-	watchInterval   = flag.Duration("watch-interval", 2*time.Second, "The interval that watch mode checks for file changes")
-)
+var opts struct {
+	goos              string
+	goarch            string
+	tags              string
+	testTags          string
+	unoptimised       bool
+	debug             bool
+	race              bool
+	build             bool
+	clear             bool
+	cover             bool
+	generate          bool
+	lint              bool
+	lintTimeout       time.Duration
+	test              bool
+	verbose           bool
+	watch             bool
+	watchExts         string
+	watchSkipPatterns string
+	watchInterval     time.Duration
+}
 
 func main() {
+	flag.StringVar(&opts.goos, "goos", "", "Sets the GOOS environment variable for the build")
+	flag.StringVar(&opts.goarch, "goarch", "", "Sets the GOARCH environment variable for the build")
+	flag.StringVar(&opts.tags, "tags", "", "Additional build tags")
+	flag.StringVar(&opts.testTags, "test-tags", "", "Additional test build tags")
+	flag.BoolVar(&opts.unoptimised, "unoptimised", false, "Disable optimisations/inlining")
+	flag.BoolVar(&opts.debug, "debug", false, "Enable symbol table/DWARF generation")
+	flag.BoolVar(&opts.race, "race", false, "Enable data race detection in the final binary")
+	flag.BoolVar(&opts.build, "build", false, "Enable building the final binary")
+	flag.BoolVar(&opts.clear, "clear", false, "If set then the console will be cleared before running the build")
+	flag.BoolVar(&opts.cover, "cover", false, "Generates an HTML cover report that's opened in the browser if watch is disabled")
+	flag.BoolVar(&opts.generate, "generate", false, "Enable generating code before build")
+	flag.BoolVar(&opts.lint, "lint", false, "Enable linting before build")
+	flag.DurationVar(&opts.lintTimeout, "lint-timeout", 1*time.Minute, "The timeout duration to pass to the linter")
+	flag.BoolVar(&opts.test, "test", false, "Enable tests before build")
+	flag.BoolVar(&opts.verbose, "verbose", false, "Print the commands that are being run along with all command output")
+	flag.BoolVar(&opts.watch, "watch", false, "Watches for changes and re-runs the build if changes are detected")
+	flag.StringVar(&opts.watchExts, "watch-exts", ".go .h .c .sql .json", "A space separated list of file extensions to watch")
+	flag.StringVar(&opts.watchSkipPatterns, "watch-skip-patterns", ".git/ .hg/ .svn/ node_modules/ build.go", "A space separated list of patterns to skip in watch mode")
+	flag.DurationVar(&opts.watchInterval, "watch-interval", 2*time.Second, "The interval that watch mode checks for file changes")
 	flag.Parse()
 
-	if tags := strings.TrimSpace(*userBuildTags); tags != "" {
-		buildTags += " " + tags
+	if s := strings.TrimSpace(opts.tags); s != "" {
+		tags += " " + s
 	}
+	tags = strings.TrimSpace(tags)
 
-	if tags := strings.TrimSpace(*userTestTags); tags != "" {
-		testTags += " " + tags
+	if s := strings.TrimSpace(opts.testTags); s != "" {
+		testTags += " " + s
 	}
+	testTags = strings.TrimSpace(tags + " " + testTags)
 
-	buildTags = strings.TrimSpace(buildTags)
-	testTags = strings.TrimSpace(testTags)
+	opts.watchExts = strings.TrimSpace(opts.watchExts)
+	opts.watchSkipPatterns = strings.TrimSpace(opts.watchSkipPatterns)
 
-	*watchExts = strings.TrimSpace(*watchExts)
-
-	if !*buildEnabled && !*generateEnabled && !*lintEnabled && !*testEnabled && !*coverEnabled {
-		*generateEnabled = true
-		*lintEnabled = true
-		*testEnabled = true
-		*buildEnabled = true
+	if !opts.build && !opts.generate && !opts.lint && !opts.test && !opts.cover {
+		opts.generate = true
+		opts.lint = true
+		opts.test = true
+		opts.build = true
 	}
 
 	pkg := flag.Arg(0)
 
 	// Default to building all commands
 	if pkg == "" {
-		pkg = "./cmd/..."
+		if fi, err := os.Stat("cmd"); errors.Is(err, fs.ErrNotExist) || !fi.IsDir() {
+			pkg = "./..."
+		} else {
+			pkg = "./cmd/..."
+		}
 	}
 
 	// Always only build local commands
@@ -78,11 +104,37 @@ func main() {
 		os.Exit(1)
 	}
 
+	if opts.goos == "" {
+		opts.goos = runtime.GOOS
+	}
+
+	if opts.goarch == "" {
+		opts.goarch = runtime.GOARCH
+	}
+
+	// Always immediately run the build pipeline at least once, even if in watch mode
 	run(pkg)
 
-	if *watchEnabled {
+	if opts.watch {
+		skipPatterns := strings.Fields(opts.watchSkipPatterns)
+		skip := func(path string) bool {
+			for _, pattern := range skipPatterns {
+				path = filepath.ToSlash(path)
+
+				if path == pattern {
+					return true
+				}
+
+				if strings.HasSuffix(pattern, "/") && strings.HasPrefix(path, pattern) {
+					return true
+				}
+			}
+
+			return false
+		}
+
 		exts := make(map[string]struct{})
-		for _, ext := range strings.Split(*watchExts, " ") {
+		for _, ext := range strings.Fields(opts.watchExts) {
 			if ext == "" {
 				continue
 			}
@@ -99,10 +151,17 @@ func main() {
 			var changed bool
 
 			filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
-				if d.IsDir() {
+				// Completely skip directories that are in the skip patterns
+				if d.IsDir() && skip(path) {
+					return filepath.SkipDir
+				}
+
+				// Individually skip directories/files that haven't been entirely skipped by the previous check
+				if d.IsDir() || skip(path) {
 					return nil
 				}
 
+				// Skip any files that don't match watch extensions
 				if _, ok := exts[filepath.Ext(path)]; !ok {
 					return nil
 				}
@@ -125,21 +184,21 @@ func main() {
 				run(pkg)
 			}
 
-			time.Sleep(*watchInterval)
+			time.Sleep(opts.watchInterval)
 		}
 	}
 }
 
 func run(pkg string) {
-	if *clearEnabled {
+	if opts.clear {
 		clear()
 	}
 
 	fmt.Printf("Running build @ %v:\n", time.Now().Format(time.UnixDate))
 
-	if *generateEnabled {
+	if opts.generate {
 		if err := generate(); err != nil {
-			if !*watchEnabled {
+			if !opts.watch {
 				os.Exit(1)
 			}
 
@@ -147,9 +206,9 @@ func run(pkg string) {
 		}
 	}
 
-	if *lintEnabled {
+	if opts.lint {
 		if err := lint(); err != nil {
-			if !*watchEnabled {
+			if !opts.watch {
 				os.Exit(1)
 			}
 
@@ -157,9 +216,10 @@ func run(pkg string) {
 		}
 	}
 
-	if *testEnabled && !*coverEnabled {
+	// If cover is enabled then we skip this because cover includes a call to test with cover profile flags anyway
+	if opts.test && !opts.cover {
 		if err := test(); err != nil {
-			if !*watchEnabled {
+			if !opts.watch {
 				os.Exit(1)
 			}
 
@@ -167,9 +227,9 @@ func run(pkg string) {
 		}
 	}
 
-	if *coverEnabled {
+	if opts.cover {
 		if err := cover(); err != nil {
-			if !*watchEnabled {
+			if !opts.watch {
 				os.Exit(1)
 			}
 
@@ -177,9 +237,9 @@ func run(pkg string) {
 		}
 	}
 
-	if *buildEnabled {
+	if opts.build {
 		if err := build(pkg); err != nil {
-			if !*watchEnabled {
+			if !opts.watch {
 				os.Exit(1)
 			}
 
@@ -201,11 +261,34 @@ func clear() {
 	}
 }
 
+func command(program string, args ...string) (string, []string, string) {
+	messageValues := make([]interface{}, len(args))
+	for i, arg := range args {
+		messageValues[i] = arg
+	}
+
+	verbs := make([]string, len(args))
+	for i, arg := range args {
+		if strings.IndexFunc(arg, unicode.IsSpace) >= 0 {
+			verbs[i] = "%q"
+		} else {
+			verbs[i] = "%v"
+		}
+	}
+	message := fmt.Sprintf("$ %v "+strings.Join(verbs, " "), append([]interface{}{program}, messageValues...)...)
+
+	return program, args, message
+}
+
 func generate() error {
+	program, args, message := command("go", "generate", "./...")
+	if opts.verbose {
+		fmt.Println("    " + message)
+	}
+
 	fmt.Print("    go generate... ")
 
-	out, err := exec.Command("go", "generate", "./...").CombinedOutput()
-	if err != nil {
+	if out, err := exec.Command(program, args...).CombinedOutput(); err != nil {
 		fmt.Println("error")
 
 		if len(out) > 0 {
@@ -215,16 +298,24 @@ func generate() error {
 		return err
 	} else {
 		fmt.Println("ok")
+
+		if len(out) > 0 && opts.verbose {
+			fmt.Println(string(out))
+		}
 	}
 
 	return nil
 }
 
 func test() error {
+	program, args, message := command("go", "test", "-race", "-tags", testTags, "./...")
+	if opts.verbose {
+		fmt.Println("    " + message)
+	}
+
 	fmt.Print("    go test... ")
 
-	out, err := exec.Command("go", "test", "-race", "-tags", testTags, "./...").CombinedOutput()
-	if err != nil {
+	if out, err := exec.Command(program, args...).CombinedOutput(); err != nil {
 		fmt.Println("error")
 
 		if len(out) > 0 {
@@ -234,16 +325,24 @@ func test() error {
 		return err
 	} else {
 		fmt.Println("ok")
+
+		if len(out) > 0 && opts.verbose {
+			fmt.Println(string(out))
+		}
 	}
 
 	return nil
 }
 
 func cover() error {
+	program, args, message := command("go", "test", "-race", "-tags", testTags, "-coverprofile", "_cover.out", "./...")
+	if opts.verbose {
+		fmt.Println("    " + message)
+	}
+
 	fmt.Print("    go test (cover)... ")
 
-	out, err := exec.Command("go", "test", "-race", "-tags", testTags, "-coverprofile", "_cover.out", "./...").CombinedOutput()
-	if err != nil {
+	if out, err := exec.Command(program, args...).CombinedOutput(); err != nil {
 		fmt.Println("error")
 
 		if len(out) > 0 {
@@ -253,13 +352,21 @@ func cover() error {
 		return err
 	} else {
 		fmt.Println("ok")
+
+		if len(out) > 0 && opts.verbose {
+			fmt.Println(string(out))
+		}
 	}
 
-	if !*watchEnabled {
+	if !opts.watch {
+		program, args, message := command("go", "tool", "cover", "-html", "_cover.out")
+		if opts.verbose {
+			fmt.Println("    " + message)
+		}
+
 		fmt.Print("    go tool cover... ")
 
-		out, err = exec.Command("go", "tool", "cover", "-html", "_cover.out").CombinedOutput()
-		if err != nil {
+		if out, err := exec.Command(program, args...).CombinedOutput(); err != nil {
 			fmt.Println("error")
 
 			if len(out) > 0 {
@@ -269,6 +376,10 @@ func cover() error {
 			return err
 		} else {
 			fmt.Println("ok")
+
+			if len(out) > 0 && opts.verbose {
+				fmt.Println(string(out))
+			}
 		}
 	}
 
@@ -276,9 +387,15 @@ func cover() error {
 }
 
 func lint() error {
+	linter := "golangci-lint"
+	program, args, message := command(linter, "run", "--allow-parallel-runners", "--timeout", opts.lintTimeout.String(), "--color", "always", "--build-tags", testTags)
+	if opts.verbose {
+		fmt.Println("    " + message)
+	}
+
 	fmt.Print("    golangci-lint... ")
 
-	if lint, err := exec.LookPath("golangci-lint"); err != nil {
+	if _, err := exec.LookPath(linter); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			fmt.Println("not found, please install")
 		} else {
@@ -286,18 +403,19 @@ func lint() error {
 		}
 
 		os.Exit(1)
+	} else if out, err := exec.Command(program, args...).CombinedOutput(); err != nil {
+		fmt.Println("error")
+
+		if len(out) > 0 {
+			fmt.Println(string(out))
+		}
+
+		return err
 	} else {
-		out, err := exec.Command(lint, "run", "--color", "always", "--build-tags", testTags).CombinedOutput()
-		if err != nil {
-			fmt.Println("error")
+		fmt.Println("ok")
 
-			if len(out) > 0 {
-				fmt.Println(string(out))
-			}
-
-			return err
-		} else {
-			fmt.Println("ok")
+		if len(out) > 0 && opts.verbose {
+			fmt.Println(string(out))
 		}
 	}
 
@@ -305,27 +423,32 @@ func lint() error {
 }
 
 func build(pkg string) error {
-	fmt.Printf("    go build %v... ", strings.TrimSuffix(pkg, "..."))
-
-	buildTagsMessage := buildTags
-	if buildTagsMessage == "" {
-		buildTagsMessage = "-"
+	tagsMessage := tags
+	if tagsMessage == "" {
+		tagsMessage = "-"
 	}
 
-	args := []string{"build", "-v", "-tags", buildTags}
+	args := []string{"build", "-v", "-x", "-o", ".", "-tags", tags}
 	gcflags := []string{}
 	ldflags := []string{
-		fmt.Sprintf("-X 'main.version=%v'", closestTag()),
-		fmt.Sprintf("-X 'main.branch=%v'", commitBranch()),
-		fmt.Sprintf("-X 'main.commit=%v'", commitHash()),
-		fmt.Sprintf("-X 'main.tags=%v'", buildTagsMessage),
+		fmt.Sprintf("-X 'main.branch=%v'", commitBranch("")),
+		fmt.Sprintf("-X 'main.version=%v'", closestTag("")),
+		fmt.Sprintf("-X 'main.commit=%v'", commitHash("")),
+		fmt.Sprintf("-X 'main.tags=%v'", tagsMessage),
 	}
 
-	if *debug {
+	if opts.unoptimised {
 		// -N disables all optimisations
 		// -l disables inlining
 		// See: go tool compile --help
 		gcflags = append(gcflags, "all=-N -l")
+	}
+
+	if opts.debug {
+		if opts.goos == "windows" {
+			// This is required on Windows to view disassembly in things like pprof
+			args = append(args, "-buildmode", "exe")
+		}
 
 		ldflags = append(ldflags, "-X 'main.target=Debug'")
 	} else {
@@ -340,7 +463,7 @@ func build(pkg string) error {
 		ldflags = append(ldflags, "-w")
 	}
 
-	if *race {
+	if opts.race {
 		args = append(args, "-race")
 
 		ldflags = append(ldflags, "-X 'main.race=Enabled'")
@@ -359,14 +482,21 @@ func build(pkg string) error {
 	args = append(args, pkg)
 
 	var env []string
-	if *goos != "" {
-		env = append(env, "GOOS="+*goos)
+	if opts.goos != "" {
+		env = append(env, "GOOS="+opts.goos)
 	}
-	if *goarch != "" {
-		env = append(env, "GOARCH="+*goarch)
+	if opts.goarch != "" {
+		env = append(env, "GOARCH="+opts.goarch)
 	}
 
-	cmd := exec.Command("go", args...)
+	program, args, message := command("go", args...)
+	if opts.verbose {
+		fmt.Println("    " + message)
+	}
+
+	fmt.Printf("    go build %v... ", strings.TrimSuffix(pkg, "..."))
+
+	cmd := exec.Command(program, args...)
 	if len(env) > 0 {
 		cmd.Env = append(os.Environ(), env...)
 	}
@@ -381,32 +511,38 @@ func build(pkg string) error {
 		return err
 	} else {
 		fmt.Print("ok ")
+
+		var info []string
+
+		if opts.debug {
+			info = append(info, "debug")
+		} else {
+			info = append(info, "release")
+		}
+
+		if opts.race {
+			info = append(info, "race")
+		}
+
+		fmt.Printf("(%v)\n", strings.Join(info, "/"))
+
+		if len(out) > 0 && opts.verbose {
+			fmt.Println(string(out))
+		}
 	}
-
-	var info []string
-
-	if *debug {
-		info = append(info, "debug")
-	} else {
-		info = append(info, "release")
-	}
-
-	if *race {
-		info = append(info, "race")
-	}
-
-	fmt.Printf("(%v)\n", strings.Join(info, "/"))
 
 	return nil
 }
 
-func closestTag() string {
+func closestTag(dir string) string {
 	git, err := exec.LookPath("git")
 	if err != nil {
 		return "unavailable"
 	}
 
-	out, err := exec.Command(git, "describe", "--long", "--tags").CombinedOutput()
+	cmd := exec.Command(git, "describe", "--long", "--tags")
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "unknown"
 	}
@@ -414,8 +550,7 @@ func closestTag() string {
 	parts := strings.Split(string(out), "-")
 	tag := strings.Join(parts[:len(parts)-2], "-")
 	commitsAhead, _ := strconv.Atoi(parts[len(parts)-2])
-	commitHash := tagCommitHash(tag)
-
+	commitHash := tagCommitHash(dir, tag)
 	version := strings.TrimPrefix(strings.TrimSpace(tag), "v")
 
 	var additional []string
@@ -427,7 +562,7 @@ func closestTag() string {
 
 		additional = append(additional, fmt.Sprintf("%v %v ahead of %v", commitsAhead, noun, commitHash))
 	}
-	if hasUncommittedChanges() {
+	if hasUncommittedChanges(dir) {
 		additional = append(additional, "built with uncommitted changes")
 	}
 	if len(additional) > 0 {
@@ -437,13 +572,15 @@ func closestTag() string {
 	return version
 }
 
-func tagCommitHash(tag string) string {
+func tagCommitHash(dir, tag string) string {
 	git, err := exec.LookPath("git")
 	if err != nil {
 		return "unavailable"
 	}
 
-	out, err := exec.Command(git, "show-ref", "-d", "--tags", tag).CombinedOutput()
+	cmd := exec.Command(git, "show-ref", "-d", "--tags", tag)
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "unknown"
 	}
@@ -462,13 +599,15 @@ func tagCommitHash(tag string) string {
 	return "unknown"
 }
 
-func hasUncommittedChanges() bool {
+func hasUncommittedChanges(dir string) bool {
 	git, err := exec.LookPath("git")
 	if err != nil {
 		return false
 	}
 
-	out, err := exec.Command(git, "status", "-su").CombinedOutput()
+	cmd := exec.Command(git, "status", "-su")
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return false
 	}
@@ -476,13 +615,15 @@ func hasUncommittedChanges() bool {
 	return len(out) > 0
 }
 
-func commitBranch() string {
+func commitBranch(dir string) string {
 	git, err := exec.LookPath("git")
 	if err != nil {
 		return "unavailable"
 	}
 
-	out, err := exec.Command(git, "branch", "--show-current").CombinedOutput()
+	cmd := exec.Command(git, "branch", "--show-current")
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "unknown"
 	}
@@ -490,13 +631,15 @@ func commitBranch() string {
 	return strings.TrimSpace(string(out))
 }
 
-func commitHash() string {
+func commitHash(dir string) string {
 	git, err := exec.LookPath("git")
 	if err != nil {
 		return "unavailable"
 	}
 
-	out, err := exec.Command(git, "rev-list", "-1", "HEAD").CombinedOutput()
+	cmd := exec.Command(git, "rev-list", "-1", "HEAD")
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "unknown"
 	}
